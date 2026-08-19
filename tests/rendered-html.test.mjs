@@ -18,9 +18,13 @@ test("가로형 자기소개표 고정 HTML을 렌더링한다", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /플레이 성향/);
+  assert.match(html, /플레이 스타일/);
   assert.match(html, /선호 툴/);
-  assert.match(html, /소지 룰북 \/ GM 가능 여부/);
+  assert.match(html, /소지 룰북/);
   assert.match(html, /NG \/ 트리거/);
+  assert.match(html, /기타 메모/);
+  assert.match(html, /대사\(지문\), 디테일 위주, 서술형 등/);
+  assert.match(html, /PL만/);
 });
 
 test("결과 시트는 입력 요소 없이 정적 구조로 구성한다", async () => {
