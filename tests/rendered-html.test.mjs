@@ -30,5 +30,5 @@ test("편집기 원본에 핵심 입력·미리보기·저장 기능이 포함�
   assert.match(html, /id="rulebookEditorList"/);
   assert.match(html, /html2canvas/);
   assert.match(html, /@media \(max-width: 1024px\)/);
-  assert.match(html, /제작 @sonata9x/);
+  assert.match(html, /제작 ソナ @sonata9x/);
 });
