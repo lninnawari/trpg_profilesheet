@@ -32,6 +32,8 @@ function ProfileHeader() {
     <header className="profile-header">
       <div className="solid-banner" />
       <div className="avatar" aria-label="프로필 사진 자리"><div className="avatar-placeholder"><span /><i /></div></div>
+      <span className="avatar-credit">ⓒ커미션출처 표기</span>
+      <span className="creator-credit">제작 @sonata9x</span>
       <section className="speech-card">
         <div className="identity-row"><strong><span className="landscape-copy">닉네임</span><span className="portrait-copy">닉</span></strong><span>@아이디</span></div>
         <div className="identity-divider" />
@@ -53,20 +55,31 @@ function PlayStyle() {
       <div className="play-groups">
         <div className="play-group core-style">
           <h3>플레이 스타일</h3>
-          <div className="button-line" aria-label="온라인 또는 오프라인"><Pill selected>온라인</Pill><Pill>오프라인</Pill></div>
-          <div className="button-line" aria-label="플레이 매체"><Pill selected>텍스트</Pill><Pill>반텍스트</Pill><Pill>보이스</Pill></div>
-          <div className="button-line" aria-label="플레이 인원"><Pill>1:1</Pill><Pill selected>다인</Pill></div>
-          <div className="button-line" aria-label="세션 길이"><Pill selected>단기탁</Pill><Pill>장기탁</Pill></div>
+          <div className="play-group-content">
+            <div className="button-line" aria-label="온라인 또는 오프라인"><Pill selected>온라인</Pill><Pill>오프라인</Pill></div>
+            <div className="button-line" aria-label="플레이 매체"><Pill selected>텍스트</Pill><Pill>반보이스</Pill><Pill>보이스</Pill></div>
+            <div className="button-line" aria-label="플레이 인원"><Pill>1:1</Pill><Pill selected>다인</Pill></div>
+            <div className="button-line" aria-label="세션 길이"><Pill selected>단기탁</Pill><Pill>장기탁</Pill></div>
+          </div>
         </div>
         <div className="play-group roleplay-style">
           <h3>역극</h3>
-          <div className="button-line" aria-label="역극 분량"><Pill>단문</Pill><Pill selected>장문</Pill></div>
-          <p className="group-note">대사(지문), 디테일 위주, 서술형 등</p>
+          <div className="play-group-content">
+            <div className="button-line" aria-label="역극 분량"><Pill>단문</Pill><Pill selected>장문</Pill></div>
+            <p className="group-note">대사(지문), 디테일 위주, 서술형 등</p>
+          </div>
         </div>
         <div className="play-group chat-style">
           <h3>사담</h3>
-          <div className="button-line chat-row" aria-label="사담 위치"><Pill selected>세션 탭</Pill><Pill>세션 외부</Pill><Pill>비선호</Pill></div>
-          <p className="group-note">평일 21시 이후 / 주말 협의</p>
+          <div className="play-group-content">
+            <div className="button-line chat-row" aria-label="사담 위치"><Pill selected>세션 탭</Pill><Pill>세션 외부</Pill><Pill>비선호</Pill></div>
+          </div>
+        </div>
+        <div className="play-group schedule-style">
+          <h3>일정</h3>
+          <div className="play-group-content">
+            <p className="group-note">평일 21시 이후 / 주말 협의</p>
+          </div>
         </div>
       </div>
     </section>
@@ -98,8 +111,10 @@ function RulebookList() {
       <div className="rulebook-list">
         {rulebooks.map((rulebook) => (
           <article className="rulebook-row" key={rulebook.name}>
-            <strong>{rulebook.name}</strong>
-            <span className={`rulebook-level level-${rulebook.skill.replace(" ", "-")}`}>{rulebook.skill}</span>
+            <div className="rulebook-name">
+              <strong>{rulebook.name}</strong>
+              <span className={`rulebook-level level-${rulebook.skill.replace(" ", "-")}`}>{rulebook.skill}</span>
+            </div>
             <span className="rulebook-dot" aria-hidden="true">·</span>
             <span className="rulebook-role">{rulebook.playRole}</span>
             <p>{rulebook.note}</p>
@@ -116,8 +131,10 @@ export function ProfileResult() {
       <div className="profile-sheet">
         <ProfileHeader />
         <div className="profile-content">
-          <PlayStyle />
-          <FavoriteTools />
+          <div className="tendency-tools">
+            <PlayStyle />
+            <FavoriteTools />
+          </div>
           <RulebookList />
         </div>
       </div>
