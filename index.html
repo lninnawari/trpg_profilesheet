@@ -40,10 +40,10 @@
     .app-shell {
       width: max-content;
       min-width: 100%;
-      padding: 24px;
+      padding: 19px;
       display: grid;
-      grid-template-columns: 420px 1002px;
-      gap: 24px;
+      grid-template-columns: 336px 802px;
+      gap: 19px;
       align-items: start;
       justify-content: center;
     }
@@ -58,6 +58,7 @@
       border-radius: 16px;
       background: rgba(255,255,255,.98);
       box-shadow: 0 12px 34px rgba(37,53,83,.1);
+      zoom: .8;
     }
 
     .editor-header {
@@ -186,7 +187,7 @@
     .action-button.primary { background: var(--point); color: #fff; }
     .action-button.secondary { background: #eef1f6; color: #647087; }
 
-    .preview-area { width: 1002px; }
+    .preview-area { width: 1002px; zoom: .8; }
     .preview-note { margin: 0 0 10px; color: #7d899c; text-align: right; font-size: 11px; }
     .profile-viewport { width: 1002px; }
 
@@ -231,6 +232,8 @@
     .field-value { min-width: 0; overflow: hidden; color: var(--body); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12.5px; line-height: 20px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .multiline-field-row { align-items: start; }
     .multiline-field-row .field-label { padding-top: 1px; }
+    .tool-field-row { align-items: start; }
+    .tool-field-row .field-label { padding-top: 4px; }
     .button-group { min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 
     .sheet-chip {
@@ -275,7 +278,7 @@
     .empty-rulebooks { padding: 20px 2px; color: #9aa5b5; font-size: 12px; }
 
     @media (max-width: 1510px) {
-      .app-shell { grid-template-columns: 390px 1002px; }
+      .app-shell { grid-template-columns: 312px 802px; }
       .editor { width: 390px; }
     }
 
@@ -296,6 +299,7 @@
         max-height: none;
         overflow: visible;
         border-radius: 14px;
+        zoom: 1;
       }
       .editor-header { position: relative; padding: 18px 16px 15px; }
       .editor-header h1 { font-size: 19px; }
@@ -321,7 +325,7 @@
       .activity-control-row .custom-tag-row { height: 40px; }
       .crop-action { min-width: 44px; height: 40px; }
       .action-button { height: 48px; }
-      .preview-area { width: 100%; margin-top: 18px; }
+      .preview-area { width: 100%; margin-top: 18px; zoom: 1; }
       .preview-note { margin: 0 2px 8px; text-align: left; font-size: 10.5px; }
       .profile-viewport { position: relative; width: 100%; overflow: hidden; border-radius: 8px; }
       .profile-sheet { box-shadow: none; }
@@ -469,8 +473,8 @@
             <section>
               <h2 class="section-title">선호 툴</h2>
               <div class="section-body">
-                <div class="field-row"><div class="field-label">플레이</div><div id="platformDisplay" class="button-group"></div></div>
-                <div class="field-row"><div class="field-label">연락</div><div id="contactDisplay" class="button-group"></div></div>
+                <div class="field-row tool-field-row"><div class="field-label">플레이</div><div id="platformDisplay" class="button-group"></div></div>
+                <div class="field-row tool-field-row"><div class="field-label">연락</div><div id="contactDisplay" class="button-group"></div></div>
               </div>
               <div class="ng-wrap">
                 <h2 class="section-title with-icon"><span class="title-icon" aria-hidden="true">⚠︎</span><span>NG / 트리거</span></h2>
@@ -889,30 +893,86 @@
       renderStaticFields();
     });
 
+    const cropStage = $("cropStage");
+    const activeCropPointers = new Map();
     let cropDrag = null;
-    $("cropStage").addEventListener("pointerdown", (event) => {
+    let cropPinch = null;
+
+    function getPinchDistance() {
+      const [first, second] = [...activeCropPointers.values()];
+      if (!first || !second) return 0;
+      return Math.hypot(second.x - first.x, second.y - first.y);
+    }
+
+    cropStage.addEventListener("pointerdown", (event) => {
       if (!state.avatarSrc) return;
-      cropDrag = { x: event.clientX, y: event.clientY, offsetX: state.avatarOffsetX, offsetY: state.avatarOffsetY };
-      $("cropStage").classList.add("is-dragging");
-      $("cropStage").setPointerCapture(event.pointerId);
+      activeCropPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      cropStage.classList.add("is-dragging");
+      cropStage.setPointerCapture(event.pointerId);
+
+      if (activeCropPointers.size === 1) {
+        cropDrag = {
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          offsetX: state.avatarOffsetX,
+          offsetY: state.avatarOffsetY
+        };
+        cropPinch = null;
+      } else if (activeCropPointers.size === 2) {
+        cropDrag = null;
+        cropPinch = { distance: getPinchDistance(), zoom: state.avatarZoom };
+      }
     });
-    $("cropStage").addEventListener("pointermove", (event) => {
-      if (!cropDrag) return;
-      const size = $("cropStage").getBoundingClientRect().width;
+
+    cropStage.addEventListener("pointermove", (event) => {
+      if (!activeCropPointers.has(event.pointerId)) return;
+      activeCropPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (activeCropPointers.size >= 2 && cropPinch) {
+        const distance = getPinchDistance();
+        if (cropPinch.distance > 0) {
+          state.avatarZoom = Math.round(clamp(cropPinch.zoom * (distance / cropPinch.distance), 1, 3) * 100) / 100;
+          clampCropOffsets();
+          renderStaticFields();
+        }
+        return;
+      }
+
+      if (!cropDrag || cropDrag.pointerId !== event.pointerId) return;
+      const size = cropStage.getBoundingClientRect().width;
       const limits = getCropLimits();
       state.avatarOffsetX = clamp(cropDrag.offsetX + ((event.clientX - cropDrag.x) / size) * 100, -limits.x, limits.x);
       state.avatarOffsetY = clamp(cropDrag.offsetY + ((event.clientY - cropDrag.y) / size) * 100, -limits.y, limits.y);
       renderStaticFields();
     });
+
     function finishCrop(event) {
-      if (!cropDrag) return;
-      cropDrag = null;
-      $("cropStage").classList.remove("is-dragging");
-      if ($("cropStage").hasPointerCapture(event.pointerId)) $("cropStage").releasePointerCapture(event.pointerId);
+      activeCropPointers.delete(event.pointerId);
+      if (cropStage.hasPointerCapture(event.pointerId)) cropStage.releasePointerCapture(event.pointerId);
+
+      if (activeCropPointers.size >= 2) {
+        cropDrag = null;
+        cropPinch = { distance: getPinchDistance(), zoom: state.avatarZoom };
+      } else if (activeCropPointers.size === 1) {
+        const [pointerId, pointer] = activeCropPointers.entries().next().value;
+        cropDrag = {
+          pointerId,
+          x: pointer.x,
+          y: pointer.y,
+          offsetX: state.avatarOffsetX,
+          offsetY: state.avatarOffsetY
+        };
+        cropPinch = null;
+      } else if (activeCropPointers.size === 0) {
+        cropDrag = null;
+        cropPinch = null;
+        cropStage.classList.remove("is-dragging");
+      }
     }
-    $("cropStage").addEventListener("pointerup", finishCrop);
-    $("cropStage").addEventListener("pointercancel", finishCrop);
-    $("cropStage").addEventListener("wheel", (event) => {
+    cropStage.addEventListener("pointerup", finishCrop);
+    cropStage.addEventListener("pointercancel", finishCrop);
+    cropStage.addEventListener("wheel", (event) => {
       if (!state.avatarSrc) return;
       event.preventDefault();
       changeCropZoom(event.deltaY < 0 ? .1 : -.1);
@@ -961,11 +1021,14 @@
       button.textContent = "저장 중…";
       const sheet = $("profileSheet");
       const viewport = $("profileViewport");
+      const previewArea = document.querySelector(".preview-area");
       const previousScale = sheet.style.getPropertyValue("--preview-scale");
       const previousHeight = viewport.style.height;
       const previousOverflow = viewport.style.overflow;
+      const previousPreviewZoom = previewArea.style.zoom;
       try {
         previewExporting = true;
+        previewArea.style.zoom = 1;
         sheet.style.setProperty("--preview-scale", 1);
         viewport.style.height = "auto";
         viewport.style.overflow = "visible";
@@ -979,6 +1042,7 @@
         sheet.style.setProperty("--preview-scale", previousScale || 1);
         viewport.style.height = previousHeight;
         viewport.style.overflow = previousOverflow;
+        previewArea.style.zoom = previousPreviewZoom;
         previewExporting = false;
         schedulePreviewScale();
         button.disabled = false;
