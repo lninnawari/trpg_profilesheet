@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "트친소 메이커 | 나만의 자기소개표",
-  description: "색상과 취향을 골라 가로형·세로형 트친소 자기소개표를 만들고 PNG로 저장하세요.",
+  title: "TRPG 성향 프로필 HTML",
+  description: "첨부된 가로형·세로형 레퍼런스를 반응형 HTML과 CSS로 재현한 TRPG 성향 프로필입니다.",
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
 
