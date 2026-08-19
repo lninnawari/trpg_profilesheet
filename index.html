@@ -1018,29 +1018,37 @@
       button.disabled = true;
       button.textContent = "저장 중…";
       const sheet = $("profileSheet");
-      const viewport = $("profileViewport");
-      const previewArea = document.querySelector(".preview-area");
-      const previousScale = sheet.style.getPropertyValue("--preview-scale");
-      const previousHeight = viewport.style.height;
-      const previousOverflow = viewport.style.overflow;
-      const previousPreviewZoom = previewArea.style.zoom;
+      let exportHost = null;
       try {
         previewExporting = true;
-        previewArea.style.zoom = 1;
-        sheet.style.setProperty("--preview-scale", 1);
-        viewport.style.height = "auto";
-        viewport.style.overflow = "visible";
+        exportHost = document.createElement("div");
+        Object.assign(exportHost.style, {
+          position: "fixed",
+          left: "-20000px",
+          top: "0",
+          width: "1002px",
+          overflow: "visible",
+          pointerEvents: "none"
+        });
+        const exportSheet = sheet.cloneNode(true);
+        exportSheet.setAttribute("aria-hidden", "true");
+        exportSheet.style.setProperty("--preview-scale", 1);
+        exportSheet.style.transform = "none";
+        exportHost.appendChild(exportSheet);
+        document.body.appendChild(exportHost);
+        await document.fonts.ready;
+        await Promise.all([...exportSheet.querySelectorAll("img")].map((image) => image.complete ? image.decode().catch(() => {}) : new Promise((resolve) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        })));
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(exportSheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
         const link = document.createElement("a");
         link.download = `trpg-profile-${(state.nickname || "profile").replace(/[\\/:*?"<>|]/g, "-")}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
       } finally {
-        sheet.style.setProperty("--preview-scale", previousScale || 1);
-        viewport.style.height = previousHeight;
-        viewport.style.overflow = previousOverflow;
-        previewArea.style.zoom = previousPreviewZoom;
+        exportHost?.remove();
         previewExporting = false;
         schedulePreviewScale();
         button.disabled = false;
