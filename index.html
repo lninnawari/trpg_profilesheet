@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRPG 자기소개표 만들기</title>
+  <style>
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+    :root {
+      --point: #292d33;
+      --point-mid: #5f646c;
+      --point-light: #858a91;
+      --point-soft: #eef0f2;
+      --header: #7d8289;
+      --ink: #171a1f;
+      --body: #444951;
+      --muted: #777d86;
+      --faint: #b5bac1;
+      --line: #e2e4e7;
+      --line-soft: #eff0f2;
+      --panel: #f6f7f8;
+      --avatar-start: #f0f1f3;
+      --avatar-end: #dfe1e5;
+      --avatar-shape: rgba(120,126,136,.28);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    button, input, textarea, select { font: inherit; }
+
+    body {
+      background: #edf1f6;
+      color: var(--ink);
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell {
+      width: max-content;
+      min-width: 100%;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 420px 1002px;
+      gap: 24px;
+      align-items: start;
+      justify-content: center;
+    }
+
+    .editor {
+      position: sticky;
+      top: 24px;
+      width: 420px;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      border: 1px solid #dbe2ec;
+      border-radius: 16px;
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 12px 34px rgba(37,53,83,.1);
+    }
+
+    .editor-header {
+      position: sticky;
+      z-index: 3;
+      top: 0;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid #e7ebf2;
+      background: rgba(255,255,255,.98);
+    }
+
+    .editor-header h1 { margin: 0; font-size: 20px; }
+    .editor-header p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .editor-body { padding: 4px 20px 22px; }
+
+    .control-section { padding: 18px 0; border-bottom: 1px solid #edf0f5; }
+    .control-section:last-child { border-bottom: 0; }
+    .control-section h2 { margin: 0 0 12px; font-size: 14px; }
+
+    .theme-presets { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; }
+    .theme-preset { height: 34px; padding: 0 8px; display: flex; align-items: center; justify-content: flex-start; gap: 7px; border: 1px solid #dfe4ec; border-radius: 8px; background: #fff; color: #687387; cursor: pointer; font-size: 11px; font-weight: 800; }
+    .theme-preset::before { content: ""; width: 12px; height: 12px; flex: 0 0 auto; border-radius: 50%; background: var(--preset-color); box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+    .theme-preset.is-active { border-color: var(--preset-color); box-shadow: 0 0 0 2px color-mix(in srgb,var(--preset-color) 16%,transparent); color: var(--ink); }
+    .custom-color-row { margin-top: 9px; display: grid; grid-template-columns: 42px 1fr; gap: 8px; }
+    .color-preview { width: 42px; height: 38px; overflow: hidden; border: 1px solid #dbe1eb; border-radius: 9px; background: #fff; cursor: pointer; }
+    .color-preview input[type="color"] { width: 54px; height: 50px; margin: -6px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+    .theme-hex-input { width: 100%; height: 38px; padding: 0 11px; border: 1px solid #dbe1eb; border-radius: 9px; outline: 0; color: var(--ink); font-size: 13px; font-weight: 700; text-transform: uppercase; }
+    .theme-hex-input:focus { border-color: var(--point); box-shadow: 0 0 0 3px var(--point-soft); }
+    .theme-hex-input.is-invalid { border-color: #d65c68; }
+    .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .control-grid .wide { grid-column: 1 / -1; }
+
+    .control-label { display: grid; gap: 6px; color: #657187; font-size: 11px; font-weight: 700; }
+    .control-label > h2 { margin-bottom: 6px; color: var(--ink); }
+    .control-label input,
+    .control-label textarea,
+    .control-label select,
+    .custom-tag-row input,
+    .control-input {
+      width: 100%;
+      border: 1px solid #dbe1eb;
+      border-radius: 9px;
+      outline: 0;
+      background: #fff;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .control-label input,
+    .control-label select,
+    .control-input { height: 40px; padding: 0 11px; }
+    .control-input.file-input { padding: 7px 9px; color: #68758a; font-size: 12px; }
+    .control-label textarea { min-height: 88px; padding: 10px 11px; resize: none; overflow: hidden; line-height: 1.55; }
+    .control-label textarea.large-textarea { min-height: 128px; }
+    .control-label input:focus,
+    .control-label textarea:focus,
+    .control-label select:focus,
+    .custom-tag-row input:focus,
+    .control-input:focus { border-color: #7fa3f2; box-shadow: 0 0 0 3px #edf3ff; }
+    input::placeholder, textarea::placeholder { color: #aab3c2; opacity: 1; }
+
+    .choice-editor { display: flex; flex-wrap: wrap; gap: 6px; }
+    .choice-editor label { cursor: pointer; }
+    .choice-editor input { position: absolute; opacity: 0; pointer-events: none; }
+    .choice-editor span {
+      min-height: 30px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #dfe3e8;
+      border-radius: 8px;
+      color: #7b879b;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .choice-editor input:checked + span { border-color: transparent; background: var(--point-soft); color: var(--point); }
+
+    .editor-field-list { display: grid; gap: 12px; }
+    .editor-field-row { display: grid; grid-template-columns: 72px minmax(0,1fr); gap: 10px; align-items: start; }
+    .editor-field-title { height: 30px; display: flex; align-items: center; color: var(--body); font-size: 11px; font-weight: 800; }
+    .editor-field-row.text-input-row .editor-field-title { height: 36px; }
+    .editor-choice-stack { display: grid; gap: 6px; }
+    .other-input { width: 100%; height: 34px; margin-top: 7px; padding: 0 10px; border: 1px solid #dbe1eb; border-radius: 8px; outline: 0; color: var(--ink); font-size: 12px; }
+    .other-input:focus { border-color: #7fa3f2; box-shadow: 0 0 0 3px #edf3ff; }
+    .compact-textarea { min-height: 36px; height: 36px; margin-top: 0; padding: 7px 10px; resize: none; overflow: hidden; line-height: 20px; }
+
+    .custom-tag-row { height: 38px; margin-top: 9px; display: grid; grid-template-columns: 1fr 42px; gap: 0; overflow: hidden; border: 1px solid #dbe1eb; border-radius: 9px; background: #fff; }
+    .custom-tag-row:focus-within { border-color: #7fa3f2; box-shadow: 0 0 0 3px #edf3ff; }
+    .custom-tag-row input { width: 100%; height: 100%; padding: 0 11px; border: 0; outline: 0; }
+    .custom-tag-row input:focus { border: 0; box-shadow: none; }
+    .activity-control-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .activity-control-row .custom-tag-row { width: 138px; height: 30px; margin-top: 0; grid-template-columns: 1fr 34px; flex: 0 0 138px; }
+    .activity-control-row .tag-add-button { width: 34px; }
+    .small-button, .action-button, .remove-rulebook {
+      border: 0;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .small-button { padding: 0 12px; background: #eef3fd; color: var(--point); font-size: 12px; }
+    .tag-add-button { width: 42px; height: 100%; padding: 0; border-radius: 0; background: var(--point); color: #fff; font-size: 19px; line-height: 1; }
+
+    .crop-editor { margin-top: 12px; display: none; }
+    .crop-editor.is-visible { display: grid; gap: 10px; justify-items: center; }
+    .crop-stage { position: relative; width: 230px; height: 230px; overflow: hidden; border-radius: 50%; background: #e8edf7; box-shadow: 0 0 0 5px #fff, 0 0 0 6px #dce3ee; cursor: grab; touch-action: none; user-select: none; }
+    .crop-stage.is-dragging { cursor: grabbing; }
+    .crop-stage img { position: absolute; left: calc(50% + var(--crop-x,0%)); top: calc(50% + var(--crop-y,0%)); width: var(--crop-image-width,100%); height: var(--crop-image-height,100%); max-width: none; pointer-events: none; transform: translate(-50%,-50%) scale(var(--crop-scale,1)); }
+    .crop-guide { position: absolute; inset: 0; border: 1px solid rgba(255,255,255,.85); border-radius: 50%; pointer-events: none; }
+    .crop-guide::before, .crop-guide::after { content: ""; position: absolute; background: rgba(255,255,255,.45); }
+    .crop-guide::before { left: 33.333%; top: 0; width: 1px; height: 100%; box-shadow: 76.67px 0 rgba(255,255,255,.45); }
+    .crop-guide::after { left: 0; top: 33.333%; width: 100%; height: 1px; box-shadow: 0 76.67px rgba(255,255,255,.45); }
+    .crop-actions { display: flex; align-items: center; gap: 8px; }
+    .crop-action { width: 38px; height: 32px; border: 0; border-radius: 8px; background: #edf2fb; color: var(--point); cursor: pointer; font-size: 17px; font-weight: 800; }
+    .crop-reset { width: auto; padding: 0 11px; color: #6f7b90; font-size: 11px; }
+
+    .rulebook-editor-list { display: grid; gap: 10px; }
+    .rulebook-editor-card { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1px solid #e1e6ef; border-radius: 10px; background: #fafbfd; }
+    .rulebook-editor-card .full { grid-column: 1 / -1; }
+    .rulebook-card-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+    .remove-rulebook { padding: 5px 8px; background: #f2f4f8; color: #8994a6; font-size: 11px; }
+
+    .editor-actions { padding-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .action-button { height: 40px; font-size: 13px; }
+    .action-button.primary { background: var(--point); color: #fff; }
+    .action-button.secondary { background: #eef1f6; color: #647087; }
+
+    .preview-area { width: 1002px; }
+    .preview-note { margin: 0 0 10px; color: #7d899c; text-align: right; font-size: 11px; }
+    .profile-viewport { width: 1002px; }
+
+    .profile-sheet {
+      position: relative;
+      width: 1002px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 14px 42px rgba(37,53,83,.1);
+      transform: scale(var(--preview-scale,1));
+      transform-origin: left top;
+    }
+
+    .sheet-header { position: relative; height: 350px; }
+    .header-band { position: absolute; inset: 0 0 auto; height: 183px; background: var(--header); }
+    .avatar-frame { position: absolute; z-index: 2; left: 91px; top: 108px; width: 209px; height: 209px; padding: 6px; overflow: hidden; border-radius: 50%; background: #fff; }
+    .avatar-crop { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 50%; background: linear-gradient(145deg,var(--avatar-start),var(--avatar-end)); }
+    .avatar-crop img { position: absolute; left: calc(50% + var(--avatar-offset-x,0%)); top: calc(50% + var(--avatar-offset-y,0%)); width: var(--avatar-image-width,100%); height: var(--avatar-image-height,100%); max-width: none; display: block; transform: translate(-50%,-50%) scale(var(--avatar-scale,1)); }
+    .avatar-crop img[hidden] { display: none !important; }
+    .avatar-placeholder { position: absolute; inset: 0; }
+    .avatar-placeholder::before { content: ""; position: absolute; left: 50%; top: 27%; width: 24%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: var(--avatar-shape); }
+    .avatar-placeholder::after { content: ""; position: absolute; left: 50%; bottom: 17%; width: 48%; height: 30%; transform: translateX(-50%); border-radius: 50% 50% 25% 25%; background: var(--avatar-shape); }
+
+    .identity-block { position: absolute; z-index: 2; left: 332px; top: 222px; width: 560px; }
+    .identity-line { min-width: 0; display: flex; align-items: flex-end; gap: 12px; white-space: nowrap; }
+    .nickname { color: #101b31; font-size: 24px; font-weight: 800; letter-spacing: .07em; line-height: 30px; }
+    .user-id { min-width: 0; overflow: hidden; color: #8d96a7; font-size: 15px; font-weight: 400; letter-spacing: .05em; line-height: 20px; text-overflow: ellipsis; }
+    .activity-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .credit { margin-top: 7px; color: #a6a7a9; font-size: 10px; font-weight: 500; }
+    .creator-credit { position: absolute; right: 18px; top: 191px; color: #a6a7a9; font-size: 10px; font-weight: 500; }
+
+    .sheet-content { width: 804px; margin-left: 120px; padding-bottom: 82px; }
+    .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: stretch; }
+    .top-grid > section:last-child { display: flex; flex-direction: column; }
+    .section-title { margin: 0; color: var(--point); font-size: 16px; font-weight: 800; letter-spacing: .105em; line-height: 22px; }
+    .section-title.with-icon { display: flex; align-items: center; gap: 7px; }
+    .section-title .title-icon { flex: 0 0 auto; font-size: 14px; letter-spacing: 0; line-height: 22px; transform: translateY(1px); }
+    .section-body { margin-top: 16px; display: grid; gap: 12px; }
+
+    .field-row { min-height: 27px; display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 12px; align-items: center; }
+    .field-label { color: var(--body); font-size: 13px; font-weight: 600; line-height: 18px; }
+    .field-value { min-width: 0; overflow: hidden; color: var(--body); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12.5px; line-height: 20px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .multiline-field-row { align-items: start; }
+    .multiline-field-row .field-label { padding-top: 1px; }
+    .button-group { min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .sheet-chip {
+      min-width: 0;
+      height: 27px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #dfe3e8;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--faint);
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 13px;
+      cursor: pointer;
+    }
+    .sheet-chip.is-selected { border-color: transparent; background: var(--point-soft); color: var(--point); }
+    .activity-tags .sheet-chip { cursor: default; }
+
+    .ng-wrap { flex: 1; margin-top: 26px; display: flex; flex-direction: column; }
+    .text-card { width: 100%; min-height: 112px; flex: 1; margin-top: 10px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .card-copy { margin: 0; color: var(--body); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; line-height: 23.5px; }
+
+    .memo-section { margin-top: 38px; }
+    .memo-card { min-height: 132px; margin-top: 10px; padding: 18px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .memo-card .card-copy { line-height: 25px; }
+
+    .rulebook-section { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .rulebook-list { margin-top: 7px; }
+    .rulebook-row { min-height: 45px; padding: 9px 2px; display: grid; grid-template-columns: 58px 190px 64px minmax(0,1fr); gap: 10px; align-items: center; border-bottom: 1px solid var(--line-soft); }
+    .rulebook-row:last-child { border-bottom: 0; }
+    .rulebook-level { color: var(--point); text-align: left; font-size: 10.5px; font-weight: 800; line-height: 18px; white-space: nowrap; }
+    .rulebook-level.level-novice { color: var(--point-mid); }
+    .rulebook-level.level-learning { color: var(--point-light); }
+    .rulebook-name { min-width: 0; overflow: hidden; color: var(--ink); white-space: nowrap; text-overflow: ellipsis; font-size: 13.5px; font-weight: 700; line-height: 18px; }
+    .rulebook-role { width: 52px; height: 22px; display: inline-flex; align-items: center; justify-content: center; justify-self: center; border-radius: 5px; background: var(--point-soft); color: var(--point); font-size: 10.5px; font-weight: 700; line-height: 18px; }
+    .rulebook-role.pl { background: var(--panel); color: var(--faint); }
+    .rulebook-note { min-width: 0; overflow: hidden; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 18px; }
+    .empty-rulebooks { padding: 20px 2px; color: #9aa5b5; font-size: 12px; }
+
+    @media (max-width: 1510px) {
+      .app-shell { grid-template-columns: 390px 1002px; }
+      .editor { width: 390px; }
+    }
+
+    @media (max-width: 1024px) {
+      body { overflow-x: hidden; background: #f1f4f8; }
+      .app-shell {
+        width: 100%;
+        min-width: 0;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 12px;
+        display: block;
+      }
+      .editor {
+        position: relative;
+        top: auto;
+        width: 100%;
+        max-height: none;
+        overflow: visible;
+        border-radius: 14px;
+      }
+      .editor-header { position: relative; padding: 18px 16px 15px; }
+      .editor-header h1 { font-size: 19px; }
+      .editor-body { padding: 4px 16px 20px; }
+      .control-section { padding: 17px 0; }
+      .control-grid { grid-template-columns: 1fr; }
+      .control-grid .wide { grid-column: auto; }
+      .editor-field-row { grid-template-columns: 64px minmax(0,1fr); gap: 8px; }
+      .editor-field-title { height: 40px; }
+      .editor-field-row.text-input-row .editor-field-title { height: 44px; }
+      .theme-preset { min-height: 42px; }
+      .choice-editor span { min-height: 40px; padding: 0 12px; }
+      .control-label input,
+      .control-label select,
+      .control-input { height: 44px; }
+      .control-label input,
+      .control-label textarea,
+      .control-label select,
+      .custom-tag-row input,
+      .control-input,
+      .other-input { font-size: 16px; }
+      .other-input { min-height: 44px; }
+      .activity-control-row .custom-tag-row { height: 40px; }
+      .crop-action { min-width: 44px; height: 40px; }
+      .action-button { height: 48px; }
+      .preview-area { width: 100%; margin-top: 18px; }
+      .preview-note { margin: 0 2px 8px; text-align: left; font-size: 10.5px; }
+      .profile-viewport { position: relative; width: 100%; overflow: hidden; border-radius: 8px; }
+      .profile-sheet { box-shadow: none; }
+    }
+
+    @media (max-width: 380px) {
+      .app-shell { padding: 8px; }
+      .editor-body { padding-right: 13px; padding-left: 13px; }
+      .theme-presets { grid-template-columns: repeat(2,1fr); }
+      .rulebook-editor-card { grid-template-columns: 1fr; }
+      .rulebook-editor-card .full,
+      .rulebook-card-actions { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="editor" aria-label="자기소개표 편집기">
+      <header class="editor-header">
+        <h1>TRPG 자기소개표</h1>
+        <p>입력 내용은 오른쪽 시트에 바로 반영됩니다. 시트 안의 선택 버튼도 직접 누를 수 있어요.</p>
+      </header>
+      <div class="editor-body">
+        <section class="control-section">
+          <h2>색상</h2>
+          <div id="themePresets" class="theme-presets">
+            <button class="theme-preset" type="button" data-theme-color="#292D33" style="--preset-color:#292D33">검정</button>
+            <button class="theme-preset" type="button" data-theme-color="#C13F4D" style="--preset-color:#C13F4D">빨강</button>
+            <button class="theme-preset" type="button" data-theme-color="#E99801" style="--preset-color:#E99801">노랑</button>
+            <button class="theme-preset" type="button" data-theme-color="#27805A" style="--preset-color:#27805A">녹색</button>
+            <button class="theme-preset" type="button" data-theme-color="#3163D8" style="--preset-color:#3163D8">파랑</button>
+            <button class="theme-preset" type="button" data-theme-color="#7255BE" style="--preset-color:#7255BE">보라</button>
+            <button class="theme-preset" type="button" data-theme-color="#F377A9" style="--preset-color:#F377A9">분홍</button>
+            <button class="theme-preset" type="button" data-theme-color="#82583D" style="--preset-color:#82583D">갈색</button>
+          </div>
+          <div class="custom-color-row">
+            <label class="color-preview" title="색상 팔레트 열기"><input id="themeColorPicker" type="color" value="#292d33" aria-label="직접 색상 선택"></label>
+            <input id="themeHexInput" class="theme-hex-input" value="#292D33" maxlength="7" spellcheck="false" aria-label="포인트 색상 코드">
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>기본 정보</h2>
+          <div class="control-grid">
+            <input id="nicknameInput" class="control-input" maxlength="24" placeholder="닉네임">
+            <input id="userIdInput" class="control-input" maxlength="32" placeholder="아이디 (@ 제외)">
+            <input id="creditInput" class="control-input wide" maxlength="60" placeholder="커미션 출처">
+            <input id="avatarInput" class="control-input wide file-input" type="file" accept="image/*">
+          </div>
+          <div id="cropEditor" class="crop-editor">
+            <div id="cropStage" class="crop-stage" aria-label="프로필 이미지 크롭 영역">
+              <img id="cropImage" alt="크롭할 프로필 이미지">
+              <div class="crop-guide"></div>
+            </div>
+            <div class="crop-actions">
+              <button id="cropZoomOut" class="crop-action" type="button" aria-label="축소">−</button>
+              <button id="cropReset" class="crop-action crop-reset" type="button">위치 초기화</button>
+              <button id="cropZoomIn" class="crop-action" type="button" aria-label="확대">＋</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>활동 태그</h2>
+          <div class="activity-control-row">
+            <div id="activityEditor" class="choice-editor"></div>
+            <div class="custom-tag-row"><input id="customActivityInput" maxlength="12" placeholder="그 외"><button id="addActivityButton" class="small-button tag-add-button" type="button" aria-label="활동 태그 추가">＋</button></div>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>플레이 성향</h2>
+          <div class="editor-field-list">
+            <div class="editor-field-row"><div class="editor-field-title">플레이</div><div id="playChoiceEditor" class="editor-choice-stack"></div></div>
+            <div class="editor-field-row"><div class="editor-field-title">역할</div><div id="roleChoiceEditor" class="choice-editor"></div></div>
+            <div class="editor-field-row text-input-row"><div class="editor-field-title">RP 방식</div><textarea id="rpInput" class="other-input compact-textarea" rows="1" maxlength="160"></textarea></div>
+            <div class="editor-field-row"><div class="editor-field-title">사담</div><div id="chatChoiceEditor" class="choice-editor"></div></div>
+            <div class="editor-field-row text-input-row"><div class="editor-field-title">일정</div><textarea id="scheduleInput" class="other-input compact-textarea" rows="1" maxlength="120"></textarea></div>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>선호 툴</h2>
+          <div class="editor-field-list">
+            <div class="editor-field-row"><div class="editor-field-title">플레이</div><div><div id="platformChoiceEditor" class="choice-editor"></div><input id="platformOtherInput" class="other-input" maxlength="24" placeholder="기타 플레이 툴 입력"></div></div>
+            <div class="editor-field-row"><div class="editor-field-title">연락</div><div><div id="contactChoiceEditor" class="choice-editor"></div><input id="contactOtherInput" class="other-input" maxlength="24" placeholder="기타 연락 수단 입력"></div></div>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="control-grid">
+            <label class="control-label wide"><h2>NG / 트리거</h2><textarea id="ngInput" class="large-textarea"></textarea></label>
+            <label class="control-label wide"><h2>MEMO</h2><textarea id="memoInput" class="large-textarea"></textarea></label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>소지 룰북</h2>
+          <div id="rulebookEditorList" class="rulebook-editor-list"></div>
+          <button id="addRulebookButton" class="small-button" style="height:36px;margin-top:10px" type="button">룰북 추가</button>
+        </section>
+
+        <div class="editor-actions">
+          <button id="resetButton" class="action-button secondary" type="button">초기화</button>
+          <button id="downloadButton" class="action-button primary" type="button">PNG 저장</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="preview-area">
+      <p class="preview-note">시트 크기 1002px · 내용이 길어지면 세로 길이가 자동으로 늘어납니다.</p>
+      <div id="profileViewport" class="profile-viewport">
+        <article id="profileSheet" class="profile-sheet" aria-label="TRPG 자기소개표 미리보기">
+        <header class="sheet-header">
+          <div class="header-band"></div>
+          <div class="avatar-frame">
+            <div id="avatarCrop" class="avatar-crop">
+              <div id="avatarPlaceholder" class="avatar-placeholder"></div>
+              <img id="avatarImage" alt="프로필 이미지" hidden>
+            </div>
+          </div>
+          <div class="identity-block">
+            <div class="identity-line"><strong id="nicknameDisplay" class="nickname"></strong><span id="userIdDisplay" class="user-id"></span></div>
+            <div id="activityDisplay" class="activity-tags"></div>
+            <div id="creditDisplay" class="credit"></div>
+          </div>
+          <div class="creator-credit">제작 @sonata9x</div>
+        </header>
+
+        <div class="sheet-content">
+          <div class="top-grid">
+            <section>
+              <h2 class="section-title">플레이 성향</h2>
+              <div class="section-body">
+                <div class="field-row"><div class="field-label">플레이</div><div id="playModeDisplay" class="button-group"></div></div>
+                <div class="field-row"><div></div><div id="voiceDisplay" class="button-group"></div></div>
+                <div class="field-row"><div></div><div class="button-group"><div id="partyDisplay" class="button-group"></div><div id="durationDisplay" class="button-group"></div></div></div>
+                <div class="field-row"><div class="field-label">역할</div><div id="roleDisplay" class="button-group"></div></div>
+                <div class="field-row multiline-field-row"><div class="field-label">RP 방식</div><div id="rpDisplay" class="field-value"></div></div>
+                <div class="field-row"><div class="field-label">사담</div><div id="chatDisplay" class="button-group"></div></div>
+                <div class="field-row multiline-field-row"><div class="field-label">일정</div><div id="scheduleDisplay" class="field-value"></div></div>
+              </div>
+            </section>
+
+            <section>
+              <h2 class="section-title">선호 툴</h2>
+              <div class="section-body">
+                <div class="field-row"><div class="field-label">플레이</div><div id="platformDisplay" class="button-group"></div></div>
+                <div class="field-row"><div class="field-label">연락</div><div id="contactDisplay" class="button-group"></div></div>
+              </div>
+              <div class="ng-wrap">
+                <h2 class="section-title with-icon"><span class="title-icon" aria-hidden="true">⚠︎</span><span>NG / 트리거</span></h2>
+                <div class="text-card"><p id="ngDisplay" class="card-copy"></p></div>
+              </div>
+            </section>
+          </div>
+
+          <section class="memo-section">
+            <h2 class="section-title">MEMO</h2>
+            <div class="memo-card"><p id="memoDisplay" class="card-copy"></p></div>
+          </section>
+
+          <section class="rulebook-section">
+            <h2 class="section-title">소지 룰북</h2>
+            <div id="rulebookDisplay" class="rulebook-list"></div>
+          </section>
+        </div>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    const defaultState = () => ({
+      themeColor: "#292D33",
+      nickname: "",
+      userId: "",
+      credit: "",
+      avatarSrc: "",
+      avatarAspect: 1,
+      avatarZoom: 1,
+      avatarOffsetX: 0,
+      avatarOffsetY: 0,
+      activities: ["글", "그림", "디자인", "번역"],
+      selectedActivities: [],
+      choices: {
+        playMode: [],
+        voice: [],
+        party: [],
+        duration: [],
+        role: [],
+        chat: [],
+        platform: [],
+        contact: []
+      },
+      platformOther: "",
+      contactOther: "",
+      rp: "",
+      schedule: "",
+      ng: "",
+      memo: "",
+      rulebooks: [{ level: "주력", name: "", role: "GM 가능", note: "" }]
+    });
+
+    let state = defaultState();
+
+    const choiceDefinitions = {
+      playMode: { label: "접속", options: ["온라인", "오프라인"], multiple: true },
+      voice: { label: "플레이 방식", options: ["보이스", "반보이스", "텍스트"], multiple: true },
+      party: { label: "인원", options: ["1:1", "다인"], multiple: true },
+      duration: { label: "기간", options: ["단기탁", "장기탁"], multiple: true },
+      role: { label: "역할", options: ["GM", "PL"], multiple: true },
+      chat: { label: "사담", options: ["세션 탭", "세션 외부", "비선호"], multiple: true },
+      platform: { label: "플레이 툴", options: ["룰20", "코코포리아", "기타"], multiple: true },
+      contact: { label: "연락", options: ["디스코드", "오픈카톡", "DM", "기타"], multiple: true }
+    };
+
+    const displayTargets = {
+      playMode: "playModeDisplay",
+      voice: "voiceDisplay",
+      party: "partyDisplay",
+      duration: "durationDisplay",
+      role: "roleDisplay",
+      chat: "chatDisplay",
+      platform: "platformDisplay",
+      contact: "contactDisplay"
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+    let previewScaleFrame = 0;
+    let previewExporting = false;
+
+    function updatePreviewScale() {
+      previewScaleFrame = 0;
+      if (previewExporting) return;
+      const viewport = $("profileViewport");
+      const sheet = $("profileSheet");
+      const isCompact = window.matchMedia("(max-width: 1024px)").matches;
+      const scale = isCompact ? Math.min(1, viewport.clientWidth / 1002) : 1;
+      sheet.style.setProperty("--preview-scale", scale);
+      viewport.style.height = isCompact ? `${Math.ceil(sheet.offsetHeight * scale)}px` : "auto";
+    }
+
+    function schedulePreviewScale() {
+      if (previewScaleFrame) cancelAnimationFrame(previewScaleFrame);
+      previewScaleFrame = requestAnimationFrame(updatePreviewScale);
+    }
+
+    function normalizeHex(value) {
+      const raw = String(value).trim().replace(/^#/, "");
+      if (/^[0-9a-f]{3}$/i.test(raw)) return `#${raw.split("").map((character) => character + character).join("")}`.toUpperCase();
+      if (/^[0-9a-f]{6}$/i.test(raw)) return `#${raw}`.toUpperCase();
+      return null;
+    }
+
+    function hexToRgb(hex) {
+      const value = normalizeHex(hex).slice(1);
+      return [parseInt(value.slice(0,2),16), parseInt(value.slice(2,4),16), parseInt(value.slice(4,6),16)];
+    }
+
+    function mixHex(first, second, secondAmount) {
+      const a = hexToRgb(first);
+      const b = hexToRgb(second);
+      const mixed = a.map((channel, index) => Math.round(channel * (1 - secondAmount) + b[index] * secondAmount));
+      return `#${mixed.map((channel) => channel.toString(16).padStart(2,"0")).join("")}`.toUpperCase();
+    }
+
+    function applyTheme() {
+      const point = normalizeHex(state.themeColor) || "#292D33";
+      const [red, green, blue] = hexToRgb(point);
+      const root = document.documentElement;
+      const derived = {
+        "--point": point,
+        "--point-mid": mixHex(point, "#747B85", .42),
+        "--point-light": mixHex(point, "#FFFFFF", .48),
+        "--point-soft": mixHex(point, "#FFFFFF", .9),
+        "--header": mixHex(point, "#FFFFFF", .42),
+        "--line": mixHex(point, "#FFFFFF", .87),
+        "--line-soft": mixHex(point, "#FFFFFF", .93),
+        "--panel": mixHex(point, "#FFFFFF", .965),
+        "--avatar-start": mixHex(point, "#FFFFFF", .94),
+        "--avatar-end": mixHex(point, "#FFFFFF", .84),
+        "--avatar-shape": `rgba(${red},${green},${blue},.22)`
+      };
+      Object.entries(derived).forEach(([name, value]) => root.style.setProperty(name, value));
+      $("themeColorPicker").value = point.toLowerCase();
+      if (document.activeElement !== $("themeHexInput")) $("themeHexInput").value = point;
+      document.querySelectorAll("[data-theme-color]").forEach((button) => button.classList.toggle("is-active", normalizeHex(button.dataset.themeColor) === point));
+    }
+
+    function normalizeUserId(value) {
+      const clean = value.trim();
+      return clean && !clean.startsWith("@") ? `@${clean}` : clean;
+    }
+
+    function renderActivities() {
+      $("activityEditor").innerHTML = state.activities.map((activity) => `
+        <label><input type="checkbox" data-activity="${escapeHtml(activity)}" ${state.selectedActivities.includes(activity) ? "checked" : ""}><span>${escapeHtml(activity)}</span></label>
+      `).join("");
+      $("activityDisplay").innerHTML = state.selectedActivities.map((activity) => `<span class="sheet-chip is-selected">${escapeHtml(activity)}</span>`).join("");
+    }
+
+    function choiceEditorMarkup(key) {
+      const definition = choiceDefinitions[key];
+      const selected = state.choices[key];
+      return definition.options.map((option) => {
+        const checked = definition.multiple ? selected.includes(option) : selected === option;
+        return `<label><input type="checkbox" data-editor-choice="${key}" value="${option}" ${checked ? "checked" : ""}><span>${option}</span></label>`;
+      }).join("");
+    }
+
+    function renderChoiceEditors() {
+      $("playChoiceEditor").innerHTML = ["playMode", "voice"].map((key) => `<div class="choice-editor">${choiceEditorMarkup(key)}</div>`).join("") + `<div class="choice-editor">${choiceEditorMarkup("party")}${choiceEditorMarkup("duration")}</div>`;
+      $("roleChoiceEditor").innerHTML = choiceEditorMarkup("role");
+      $("chatChoiceEditor").innerHTML = choiceEditorMarkup("chat");
+      $("platformChoiceEditor").innerHTML = choiceEditorMarkup("platform");
+      $("contactChoiceEditor").innerHTML = choiceEditorMarkup("contact");
+      $("platformOtherInput").hidden = !state.choices.platform.includes("기타");
+      $("contactOtherInput").hidden = !state.choices.contact.includes("기타");
+    }
+
+    function renderChoiceDisplay(key) {
+      const definition = choiceDefinitions[key];
+      const selected = state.choices[key];
+      $(displayTargets[key]).innerHTML = definition.options.map((option) => {
+        const active = definition.multiple ? selected.includes(option) : selected === option;
+        const otherValue = key === "platform" ? state.platformOther : key === "contact" ? state.contactOther : "";
+        const label = option === "기타" && active && otherValue.trim() ? otherValue.trim() : option;
+        return `<button type="button" class="sheet-chip${active ? " is-selected" : ""}" data-preview-choice="${key}" value="${option}">${escapeHtml(label)}</button>`;
+      }).join("");
+    }
+
+    function renderRulebookEditor() {
+      $("rulebookEditorList").innerHTML = state.rulebooks.map((rulebook, index) => `
+        <div class="rulebook-editor-card" data-rulebook-index="${index}">
+          <label class="control-label"><span>숙련도</span><select data-rulebook-field="level"><option ${rulebook.level === "주력" ? "selected" : ""}>주력</option><option ${rulebook.level === "미숙" ? "selected" : ""}>미숙</option><option ${rulebook.level === "입문 희망" ? "selected" : ""}>입문 희망</option></select></label>
+          <label class="control-label"><span>역할</span><select data-rulebook-field="role"><option ${rulebook.role === "GM 가능" ? "selected" : ""}>GM 가능</option><option ${rulebook.role === "PL만" ? "selected" : ""}>PL만</option></select></label>
+          <input class="control-input full" data-rulebook-field="name" value="${escapeHtml(rulebook.name)}" maxlength="60" placeholder="룰북 이름">
+          <input class="control-input full" data-rulebook-field="note" value="${escapeHtml(rulebook.note)}" maxlength="100" placeholder="상세정보">
+          <div class="rulebook-card-actions"><button class="remove-rulebook" type="button" data-remove-rulebook="${index}">삭제</button></div>
+        </div>
+      `).join("");
+    }
+
+    function renderRulebooks() {
+      if (!state.rulebooks.length) {
+        $("rulebookDisplay").innerHTML = '<div class="empty-rulebooks">등록된 룰북이 없습니다.</div>';
+        return;
+      }
+      $("rulebookDisplay").innerHTML = state.rulebooks.map((rulebook) => {
+        const levelClass = rulebook.level === "미숙" ? " level-novice" : rulebook.level === "입문 희망" ? " level-learning" : "";
+        return `<div class="rulebook-row">
+          <span class="rulebook-level${levelClass}">${escapeHtml(rulebook.level)}</span>
+          <strong class="rulebook-name">${escapeHtml(rulebook.name)}</strong>
+          <span class="rulebook-role${rulebook.role === "PL만" ? " pl" : ""}">${escapeHtml(rulebook.role)}</span>
+          <span class="rulebook-note">${escapeHtml(rulebook.note)}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function renderStaticFields() {
+      $("nicknameDisplay").textContent = state.nickname || "닉네임";
+      $("userIdDisplay").textContent = normalizeUserId(state.userId) || "@아이디";
+      $("creditDisplay").textContent = state.credit.trim() ? `ⓒ${state.credit.trim()}` : "";
+      $("creditDisplay").hidden = !state.credit.trim();
+      $("rpDisplay").textContent = state.rp;
+      $("scheduleDisplay").textContent = state.schedule;
+      $("ngDisplay").textContent = state.ng;
+      $("memoDisplay").textContent = state.memo;
+
+      const avatarAspect = state.avatarAspect || 1;
+      const avatarImageWidth = avatarAspect >= 1 ? avatarAspect * 100 : 100;
+      const avatarImageHeight = avatarAspect >= 1 ? 100 : 100 / avatarAspect;
+      $("avatarCrop").style.setProperty("--avatar-image-width", `${avatarImageWidth}%`);
+      $("avatarCrop").style.setProperty("--avatar-image-height", `${avatarImageHeight}%`);
+      $("avatarCrop").style.setProperty("--avatar-scale", state.avatarZoom);
+      $("avatarCrop").style.setProperty("--avatar-offset-x", `${state.avatarOffsetX}%`);
+      $("avatarCrop").style.setProperty("--avatar-offset-y", `${state.avatarOffsetY}%`);
+      $("cropStage").style.setProperty("--crop-image-width", `${avatarImageWidth}%`);
+      $("cropStage").style.setProperty("--crop-image-height", `${avatarImageHeight}%`);
+      $("cropStage").style.setProperty("--crop-scale", state.avatarZoom);
+      $("cropStage").style.setProperty("--crop-x", `${state.avatarOffsetX}%`);
+      $("cropStage").style.setProperty("--crop-y", `${state.avatarOffsetY}%`);
+      $("avatarImage").hidden = !state.avatarSrc;
+      $("avatarPlaceholder").hidden = Boolean(state.avatarSrc);
+      $("cropEditor").classList.toggle("is-visible", Boolean(state.avatarSrc));
+      if (state.avatarSrc) {
+        $("avatarImage").src = state.avatarSrc;
+        $("cropImage").src = state.avatarSrc;
+      }
+    }
+
+    function autoResizeTextarea(element) {
+      if (!element) return;
+      element.style.height = "auto";
+      if (element.classList.contains("compact-textarea")) {
+        element.style.height = `${Math.min(58, Math.max(36, element.scrollHeight))}px`;
+        return;
+      }
+      element.style.height = `${Math.max(128, element.scrollHeight)}px`;
+    }
+
+    function syncInputs() {
+      $("nicknameInput").value = state.nickname;
+      $("userIdInput").value = state.userId;
+      $("creditInput").value = state.credit;
+      $("rpInput").value = state.rp;
+      $("scheduleInput").value = state.schedule;
+      $("ngInput").value = state.ng;
+      $("memoInput").value = state.memo;
+      $("platformOtherInput").value = state.platformOther;
+      $("contactOtherInput").value = state.contactOther;
+      [$("rpInput"), $("scheduleInput"), $("ngInput"), $("memoInput")].forEach(autoResizeTextarea);
+    }
+
+    function renderAll({ syncForm = false } = {}) {
+      applyTheme();
+      renderStaticFields();
+      renderActivities();
+      renderChoiceEditors();
+      Object.keys(displayTargets).forEach(renderChoiceDisplay);
+      renderRulebookEditor();
+      renderRulebooks();
+      if (syncForm) syncInputs();
+      schedulePreviewScale();
+    }
+
+    function updateChoice(key, option) {
+      const definition = choiceDefinitions[key];
+      if (definition.multiple) {
+        const values = state.choices[key];
+        state.choices[key] = values.includes(option) ? values.filter((value) => value !== option) : [...values, option];
+      } else {
+        state.choices[key] = state.choices[key] === option ? "" : option;
+      }
+      renderChoiceEditors();
+      $("platformOtherInput").value = state.platformOther;
+      $("contactOtherInput").value = state.contactOther;
+      renderChoiceDisplay(key);
+    }
+
+    function bindTextInput(id, stateKey, transform = (value) => value) {
+      $(id).addEventListener("input", (event) => {
+        state[stateKey] = transform(event.target.value);
+        renderStaticFields();
+        if (stateKey === "platformOther") renderChoiceDisplay("platform");
+        if (stateKey === "contactOther") renderChoiceDisplay("contact");
+        if (event.target.tagName === "TEXTAREA") autoResizeTextarea(event.target);
+      });
+    }
+
+    bindTextInput("nicknameInput", "nickname");
+    bindTextInput("userIdInput", "userId");
+    bindTextInput("creditInput", "credit", (value) => value.replace(/^ⓒ\s*/, ""));
+    bindTextInput("rpInput", "rp");
+    bindTextInput("scheduleInput", "schedule");
+    bindTextInput("ngInput", "ng");
+    bindTextInput("memoInput", "memo");
+    bindTextInput("platformOtherInput", "platformOther");
+    bindTextInput("contactOtherInput", "contactOther");
+
+    $("themePresets").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-theme-color]");
+      if (!button) return;
+      state.themeColor = normalizeHex(button.dataset.themeColor);
+      $("themeHexInput").classList.remove("is-invalid");
+      $("themeHexInput").value = state.themeColor;
+      applyTheme();
+    });
+    $("themeColorPicker").addEventListener("input", (event) => {
+      state.themeColor = normalizeHex(event.target.value);
+      $("themeHexInput").value = state.themeColor;
+      $("themeHexInput").classList.remove("is-invalid");
+      applyTheme();
+    });
+    $("themeHexInput").addEventListener("input", (event) => {
+      const color = normalizeHex(event.target.value);
+      event.target.classList.toggle("is-invalid", !color);
+      if (!color) return;
+      state.themeColor = color;
+      applyTheme();
+    });
+    $("themeHexInput").addEventListener("blur", (event) => {
+      const color = normalizeHex(event.target.value);
+      event.target.value = color || state.themeColor;
+      event.target.classList.remove("is-invalid");
+    });
+
+    $("activityEditor").addEventListener("change", (event) => {
+      const input = event.target.closest("[data-activity]");
+      if (!input) return;
+      const activity = input.dataset.activity;
+      state.selectedActivities = input.checked ? [...state.selectedActivities, activity] : state.selectedActivities.filter((value) => value !== activity);
+      renderActivities();
+    });
+
+    function addCustomActivity() {
+      const value = $("customActivityInput").value.trim();
+      if (!value) return;
+      if (!state.activities.includes(value)) state.activities.push(value);
+      if (!state.selectedActivities.includes(value)) state.selectedActivities.push(value);
+      $("customActivityInput").value = "";
+      renderActivities();
+    }
+    $("addActivityButton").addEventListener("click", addCustomActivity);
+    $("customActivityInput").addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); addCustomActivity(); } });
+
+    document.addEventListener("change", (event) => {
+      const choice = event.target.closest("[data-editor-choice]");
+      if (choice) updateChoice(choice.dataset.editorChoice, choice.value);
+    });
+    $("profileSheet").addEventListener("click", (event) => {
+      const choice = event.target.closest("[data-preview-choice]");
+      if (choice) updateChoice(choice.dataset.previewChoice, choice.value);
+    });
+
+    $("avatarInput").addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const source = reader.result;
+        const image = new Image();
+        image.onload = () => {
+          state.avatarSrc = source;
+          state.avatarAspect = image.naturalWidth / image.naturalHeight || 1;
+          state.avatarZoom = 1;
+          state.avatarOffsetX = 0;
+          state.avatarOffsetY = 0;
+          renderStaticFields();
+        };
+        image.src = source;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+    function getCropLimits(zoom = state.avatarZoom) {
+      const aspect = state.avatarAspect || 1;
+      const baseWidth = aspect >= 1 ? aspect * 100 : 100;
+      const baseHeight = aspect >= 1 ? 100 : 100 / aspect;
+      return {
+        x: Math.max(0, (baseWidth * zoom - 100) / 2),
+        y: Math.max(0, (baseHeight * zoom - 100) / 2)
+      };
+    }
+    function clampCropOffsets() {
+      const limits = getCropLimits();
+      state.avatarOffsetX = clamp(state.avatarOffsetX, -limits.x, limits.x);
+      state.avatarOffsetY = clamp(state.avatarOffsetY, -limits.y, limits.y);
+    }
+    function changeCropZoom(amount) {
+      state.avatarZoom = Math.round(clamp(state.avatarZoom + amount, 1, 3) * 10) / 10;
+      clampCropOffsets();
+      renderStaticFields();
+    }
+    $("cropZoomOut").addEventListener("click", () => changeCropZoom(-.1));
+    $("cropZoomIn").addEventListener("click", () => changeCropZoom(.1));
+    $("cropReset").addEventListener("click", () => {
+      state.avatarZoom = 1;
+      state.avatarOffsetX = 0;
+      state.avatarOffsetY = 0;
+      renderStaticFields();
+    });
+
+    let cropDrag = null;
+    $("cropStage").addEventListener("pointerdown", (event) => {
+      if (!state.avatarSrc) return;
+      cropDrag = { x: event.clientX, y: event.clientY, offsetX: state.avatarOffsetX, offsetY: state.avatarOffsetY };
+      $("cropStage").classList.add("is-dragging");
+      $("cropStage").setPointerCapture(event.pointerId);
+    });
+    $("cropStage").addEventListener("pointermove", (event) => {
+      if (!cropDrag) return;
+      const size = $("cropStage").getBoundingClientRect().width;
+      const limits = getCropLimits();
+      state.avatarOffsetX = clamp(cropDrag.offsetX + ((event.clientX - cropDrag.x) / size) * 100, -limits.x, limits.x);
+      state.avatarOffsetY = clamp(cropDrag.offsetY + ((event.clientY - cropDrag.y) / size) * 100, -limits.y, limits.y);
+      renderStaticFields();
+    });
+    function finishCrop(event) {
+      if (!cropDrag) return;
+      cropDrag = null;
+      $("cropStage").classList.remove("is-dragging");
+      if ($("cropStage").hasPointerCapture(event.pointerId)) $("cropStage").releasePointerCapture(event.pointerId);
+    }
+    $("cropStage").addEventListener("pointerup", finishCrop);
+    $("cropStage").addEventListener("pointercancel", finishCrop);
+    $("cropStage").addEventListener("wheel", (event) => {
+      if (!state.avatarSrc) return;
+      event.preventDefault();
+      changeCropZoom(event.deltaY < 0 ? .1 : -.1);
+    }, { passive: false });
+
+    $("rulebookEditorList").addEventListener("input", (event) => {
+      const card = event.target.closest("[data-rulebook-index]");
+      const field = event.target.dataset.rulebookField;
+      if (!card || !field) return;
+      state.rulebooks[Number(card.dataset.rulebookIndex)][field] = event.target.value;
+      renderRulebooks();
+    });
+    $("rulebookEditorList").addEventListener("change", (event) => {
+      const card = event.target.closest("[data-rulebook-index]");
+      const field = event.target.dataset.rulebookField;
+      if (!card || !field) return;
+      state.rulebooks[Number(card.dataset.rulebookIndex)][field] = event.target.value;
+      renderRulebooks();
+    });
+    $("rulebookEditorList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-rulebook]");
+      if (!button) return;
+      state.rulebooks.splice(Number(button.dataset.removeRulebook), 1);
+      renderRulebookEditor();
+      renderRulebooks();
+    });
+    $("addRulebookButton").addEventListener("click", () => {
+      state.rulebooks.push({ level: "주력", name: "", role: "GM 가능", note: "" });
+      renderRulebookEditor();
+      renderRulebooks();
+    });
+
+    $("resetButton").addEventListener("click", () => {
+      state = defaultState();
+      $("avatarInput").value = "";
+      renderAll({ syncForm: true });
+    });
+
+    $("downloadButton").addEventListener("click", async () => {
+      const button = $("downloadButton");
+      if (!window.html2canvas) {
+        alert("PNG 저장 모듈을 불러오지 못했습니다. 인터넷 연결 후 다시 시도해주세요.");
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "저장 중…";
+      const sheet = $("profileSheet");
+      const viewport = $("profileViewport");
+      const previousScale = sheet.style.getPropertyValue("--preview-scale");
+      const previousHeight = viewport.style.height;
+      const previousOverflow = viewport.style.overflow;
+      try {
+        previewExporting = true;
+        sheet.style.setProperty("--preview-scale", 1);
+        viewport.style.height = "auto";
+        viewport.style.overflow = "visible";
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const link = document.createElement("a");
+        link.download = `trpg-profile-${(state.nickname || "profile").replace(/[\\/:*?"<>|]/g, "-")}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } finally {
+        sheet.style.setProperty("--preview-scale", previousScale || 1);
+        viewport.style.height = previousHeight;
+        viewport.style.overflow = previousOverflow;
+        previewExporting = false;
+        schedulePreviewScale();
+        button.disabled = false;
+        button.textContent = "PNG 저장";
+      }
+    });
+
+    renderAll({ syncForm: true });
+    new ResizeObserver(schedulePreviewScale).observe($("profileSheet"));
+    window.addEventListener("resize", schedulePreviewScale, { passive: true });
+  </script>
+</body>
+</html>

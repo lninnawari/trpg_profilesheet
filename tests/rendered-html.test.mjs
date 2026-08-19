@@ -13,29 +13,22 @@ async function render(pathname = "/") {
   );
 }
 
-test("가로형 자기소개표 고정 HTML을 렌더링한다", async () => {
-  const response = await render("/sheet");
+test("TRPG 자기소개표 편집기를 루트에서 렌더링한다", async () => {
+  const response = await render("/");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /플레이 성향/);
-  assert.match(html, /플레이 스타일/);
-  assert.match(html, /선호 툴/);
-  assert.match(html, /소지 룰북/);
-  assert.match(html, /NG \/ 트리거/);
-  assert.match(html, /기타 메모/);
-  assert.match(html, /대사\(지문\), 디테일 위주, 서술형 등/);
-  assert.match(html, /PL만/);
-  assert.match(html, /ⓒ커미션출처 표기/);
-  assert.match(html, /제작 @sonata9x/);
+  assert.match(html, /TRPG 자기소개표 만들기/);
+  assert.match(html, /<iframe/);
 });
 
-test("결과 시트는 입력 요소 없이 정적 구조로 구성한다", async () => {
-  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const profileResult = page.slice(page.indexOf("export function ProfileResult"), page.indexOf("export default function Home"));
-  assert.doesNotMatch(profileResult, /<input|<textarea|<select/);
-  assert.match(page, /className="profile-sheet"/);
-  assert.match(page, /className="profile-content"/);
-  assert.match(page, /className="tendency-tools"/);
-  assert.match(page, /rulebooks\.map/);
-  assert.match(page, /type="color"/);
+test("편집기 원본에 핵심 입력·미리보기·저장 기능이 포함된다", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(html, /id="nicknameInput"/);
+  assert.match(html, /id="avatarInput"/);
+  assert.match(html, /id="themePresets"/);
+  assert.match(html, /NG \/ 트리거/);
+  assert.match(html, /id="rulebookEditorList"/);
+  assert.match(html, /html2canvas/);
+  assert.match(html, /@media \(max-width: 1024px\)/);
+  assert.match(html, /제작 @sonata9x/);
 });
