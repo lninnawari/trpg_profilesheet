@@ -25,6 +25,8 @@ test("가로형 자기소개표 고정 HTML을 렌더링한다", async () => {
   assert.match(html, /기타 메모/);
   assert.match(html, /대사\(지문\), 디테일 위주, 서술형 등/);
   assert.match(html, /PL만/);
+  assert.match(html, /ⓒ커미션출처 표기/);
+  assert.match(html, /제작 @sonata9x/);
 });
 
 test("결과 시트는 입력 요소 없이 정적 구조로 구성한다", async () => {
@@ -33,6 +35,7 @@ test("결과 시트는 입력 요소 없이 정적 구조로 구성한다", asyn
   assert.doesNotMatch(profileResult, /<input|<textarea|<select/);
   assert.match(page, /className="profile-sheet"/);
   assert.match(page, /className="profile-content"/);
+  assert.match(page, /className="tendency-tools"/);
   assert.match(page, /rulebooks\.map/);
   assert.match(page, /type="color"/);
 });
