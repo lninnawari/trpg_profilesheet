@@ -17,7 +17,7 @@ test("TRPG 자기소개표 편집기를 루트에서 렌더링한다", async () 
   const response = await render("/");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /TRPG 자기소개표 만들기/);
+  assert.match(html, /TRPG 자기소개표 제작/);
   assert.match(html, /<iframe/);
 });
 
