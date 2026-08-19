@@ -276,7 +276,7 @@
     .rulebook-role { width: 52px; height: 22px; display: inline-flex; align-items: center; justify-content: center; justify-self: center; border-radius: 5px; background: var(--point-soft); color: var(--point); font-size: 10.5px; font-weight: 700; line-height: 18px; }
     .rulebook-role.pl { background: var(--panel); color: var(--faint); }
     .rulebook-note { min-width: 0; overflow: hidden; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 18px; }
-    .empty-rulebooks { padding: 20px 2px; color: #9aa5b5; font-size: 12px; }
+    .empty-rulebooks { padding: 15px 2px 25px; color: #9aa5b5; font-size: 12px; }
 
     @media (max-width: 1510px) {
       .app-shell { grid-template-columns: 312px 802px; }
@@ -529,7 +529,7 @@
       schedule: "",
       ng: "",
       memo: "",
-      rulebooks: [{ level: "주력", name: "", role: "GM 가능", note: "" }]
+      rulebooks: []
     });
 
     let state = defaultState();
@@ -675,7 +675,7 @@
 
     function renderRulebooks() {
       if (!state.rulebooks.length) {
-        $("rulebookDisplay").innerHTML = '<div class="empty-rulebooks">등록된 룰북이 없습니다.</div>';
+        $("rulebookDisplay").innerHTML = '<div class="empty-rulebooks">-</div>';
         return;
       }
       $("rulebookDisplay").innerHTML = state.rulebooks.map((rulebook) => {
