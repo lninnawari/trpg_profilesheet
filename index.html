@@ -600,6 +600,11 @@
       }
     }
 
+    const STORAGE_KEY = "trpg-profile-card-draft-v1";
+    const AVATAR_DB_NAME = "trpg-profile-card-assets";
+    const AVATAR_STORE_NAME = "images";
+    const AVATAR_KEY = "profile-avatar";
+
     const defaultState = (language = getInitialLanguage()) => ({
       language,
       themeColor: "#292D33",
@@ -607,6 +612,7 @@
       userId: "",
       credit: "",
       avatarSrc: "",
+      hasStoredAvatar: false,
       avatarAspect: 1,
       avatarZoom: 1,
       avatarOffsetX: 0,
@@ -633,7 +639,83 @@
       rulebooks: []
     });
 
-    let state = defaultState();
+    function loadSavedState() {
+      const defaults = defaultState();
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!saved || typeof saved !== "object") return defaults;
+        return {
+          ...defaults,
+          ...saved,
+          language: getInitialLanguage(),
+          avatarSrc: "",
+          activities: Array.isArray(saved.activities) ? saved.activities : defaults.activities,
+          selectedActivities: Array.isArray(saved.selectedActivities) ? saved.selectedActivities : defaults.selectedActivities,
+          choices: { ...defaults.choices, ...(saved.choices || {}) },
+          rulebooks: Array.isArray(saved.rulebooks) ? saved.rulebooks : defaults.rulebooks
+        };
+      } catch {
+        return defaults;
+      }
+    }
+
+    function openAvatarDatabase() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) return reject(new Error("IndexedDB unavailable"));
+        const request = indexedDB.open(AVATAR_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains(AVATAR_STORE_NAME)) request.result.createObjectStore(AVATAR_STORE_NAME);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function writeAvatarToStorage(source) {
+      try {
+        const database = await openAvatarDatabase();
+        await new Promise((resolve, reject) => {
+          const transaction = database.transaction(AVATAR_STORE_NAME, "readwrite");
+          const store = transaction.objectStore(AVATAR_STORE_NAME);
+          if (source) store.put(source, AVATAR_KEY);
+          else store.delete(AVATAR_KEY);
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+        database.close();
+      } catch {}
+    }
+
+    async function readAvatarFromStorage() {
+      try {
+        const database = await openAvatarDatabase();
+        const source = await new Promise((resolve, reject) => {
+          const request = database.transaction(AVATAR_STORE_NAME, "readonly").objectStore(AVATAR_STORE_NAME).get(AVATAR_KEY);
+          request.onsuccess = () => resolve(request.result || "");
+          request.onerror = () => reject(request.error);
+        });
+        database.close();
+        return source;
+      } catch {
+        return "";
+      }
+    }
+
+    let state = loadSavedState();
+    let persistTimer = 0;
+    let avatarStorageRevision = 0;
+
+    function persistState() {
+      try {
+        const { avatarSrc, language, ...draft } = state;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      } catch {}
+    }
+
+    function schedulePersist() {
+      clearTimeout(persistTimer);
+      persistTimer = window.setTimeout(persistState, 120);
+    }
 
     const option = (value, ko, ja, languages = ["ko", "ja"]) => ({ value, labels: { ko, ja }, languages });
     const choiceDefinitions = {
@@ -757,6 +839,7 @@
       $("themeColorPicker").value = point.toLowerCase();
       if (document.activeElement !== $("themeHexInput")) $("themeHexInput").value = point;
       document.querySelectorAll("[data-theme-color]").forEach((button) => button.classList.toggle("is-active", normalizeHex(button.dataset.themeColor) === point));
+      schedulePersist();
     }
 
     function normalizeUserId(value) {
@@ -769,6 +852,7 @@
         <label><input type="checkbox" data-activity="${escapeHtml(activity)}" ${state.selectedActivities.includes(activity) ? "checked" : ""}><span>${escapeHtml(activityLabel(activity))}</span></label>
       `).join("");
       $("activityDisplay").innerHTML = state.selectedActivities.map((activity) => `<span class="sheet-chip is-selected">${escapeHtml(activityLabel(activity))}</span>`).join("");
+      schedulePersist();
     }
 
     function choiceEditorMarkup(key) {
@@ -790,6 +874,7 @@
       $("platformOtherInput").hidden = !state.choices.platform.includes("other");
       $("contactOtherInput").hidden = !state.choices.contact.includes("other");
       $("ageRatingEditor").innerHTML = ["全年齢", "R-15", "R-18"].map((rating) => `<label><input type="radio" name="ageRating" data-age-rating value="${rating}" ${state.ageRating === rating ? "checked" : ""}><span>${rating}</span></label>`).join("");
+      schedulePersist();
     }
 
     function renderChoiceDisplay(key) {
@@ -819,6 +904,7 @@
     function renderRulebooks() {
       if (!state.rulebooks.length) {
         $("rulebookDisplay").innerHTML = '<div class="empty-rulebooks">-</div>';
+        schedulePersist();
         return;
       }
       $("rulebookDisplay").innerHTML = state.rulebooks.map((rulebook) => {
@@ -830,6 +916,7 @@
           <span class="rulebook-note">${escapeHtml(rulebook.note)}</span>
         </div>`;
       }).join("");
+      schedulePersist();
     }
 
     function renderStaticFields() {
@@ -863,6 +950,7 @@
         $("avatarImage").src = state.avatarSrc;
         $("cropImage").src = state.avatarSrc;
       }
+      schedulePersist();
     }
 
     function autoResizeTextarea(element) {
@@ -904,6 +992,7 @@
       renderRulebooks();
       if (syncForm) syncInputs();
       schedulePreviewScale();
+      schedulePersist();
     }
 
     function updateChoice(key, option) {
@@ -950,6 +1039,7 @@
       if (!input) return;
       state.ageRating = input.value;
       $("ageRatingDisplay").textContent = state.ageRating;
+      schedulePersist();
     });
 
     $("themePresets").addEventListener("click", (event) => {
@@ -1010,12 +1100,15 @@
         const source = reader.result;
         const image = new Image();
         image.onload = () => {
+          avatarStorageRevision += 1;
           state.avatarSrc = source;
+          state.hasStoredAvatar = true;
           state.avatarAspect = image.naturalWidth / image.naturalHeight || 1;
           state.avatarZoom = 1;
           state.avatarOffsetX = 0;
           state.avatarOffsetY = 0;
           renderStaticFields();
+          writeAvatarToStorage(source);
         };
         image.src = source;
       };
@@ -1164,6 +1257,10 @@
     });
 
     $("resetButton").addEventListener("click", () => {
+      avatarStorageRevision += 1;
+      clearTimeout(persistTimer);
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      writeAvatarToStorage("");
       state = defaultState(state.language);
       $("avatarInput").value = "";
       renderAll({ syncForm: true });
@@ -1217,6 +1314,14 @@
     });
 
     renderAll({ syncForm: true });
+    if (state.hasStoredAvatar) {
+      const restoreRevision = avatarStorageRevision;
+      readAvatarFromStorage().then((source) => {
+        if (!source || restoreRevision !== avatarStorageRevision) return;
+        state.avatarSrc = source;
+        renderStaticFields();
+      });
+    }
     new ResizeObserver(schedulePreviewScale).observe($("profileSheet"));
     window.addEventListener("resize", schedulePreviewScale, { passive: true });
   </script>
