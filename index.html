@@ -824,10 +824,11 @@
       const point = normalizeHex(state.themeColor) || "#292D33";
       const [red, green, blue] = hexToRgb(point);
       const root = document.documentElement;
+      const pointMid = mixHex(point, "#747B85", .42);
       const derived = {
         "--point": point,
-        "--point-skilled": mixHex(point, "#747B85", .2),
-        "--point-mid": mixHex(point, "#747B85", .42),
+        "--point-skilled": mixHex(point, pointMid, .5),
+        "--point-mid": pointMid,
         "--point-light": mixHex(point, "#FFFFFF", .48),
         "--point-soft": mixHex(point, "#FFFFFF", .9),
         "--header": mixHex(point, "#FFFFFF", .42),
