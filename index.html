@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TRPG 자기소개표 제작</title>
+  <title>TRPG 프로필 카드 제작</title>
   <style>
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 
@@ -73,7 +73,8 @@
 
     .editor-header h1 { margin: 0; font-size: 20px; }
     .editor-header p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
-    .editor-body { padding: 4px 20px 22px; }
+    html[lang="ja"] .editor-header { padding-top: 17px; }
+    .editor-body { padding: 4px 20px 20px; }
 
     .control-section { padding: 18px 0; border-bottom: 1px solid #edf0f5; }
     .control-section:last-child { border-bottom: 0; }
@@ -138,6 +139,11 @@
       font-weight: 700;
     }
     .choice-editor input:checked + span { border-color: transparent; background: var(--point-soft); color: var(--point); }
+    .choice-line-break, .button-line-break { flex-basis: 100%; width: 0; height: 0; }
+
+    .language-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .language-button { height: 38px; border: 1px solid #dfe3e8; border-radius: 9px; background: #fff; color: #7b879b; cursor: pointer; font-size: 12px; font-weight: 800; }
+    .language-button.is-active { border-color: var(--point); background: var(--point-soft); color: var(--point); box-shadow: 0 0 0 2px color-mix(in srgb,var(--point) 10%,transparent); }
 
     .editor-field-list { display: grid; gap: 12px; }
     .editor-field-row { display: grid; grid-template-columns: 72px minmax(0,1fr); gap: 10px; align-items: start; }
@@ -215,6 +221,8 @@
     .identity-line { min-width: 0; display: flex; align-items: flex-end; gap: 11px; white-space: nowrap; }
     .nickname { color: #101b31; font-size: 24px; font-weight: 800; letter-spacing: .07em; line-height: 30px; }
     .user-id { min-width: 0; overflow: hidden; color: #8d96a7; font-size: 15px; font-weight: 400; letter-spacing: .05em; line-height: 20px; text-overflow: ellipsis; transform: translateY(-1px); }
+    .age-rating-display { height: 24px; margin-left: 11px; padding: 0 9px; display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; border: 1px solid var(--point); border-radius: 7px; background: #fff; color: var(--point); font-size: 11px; font-weight: 800; line-height: 1; transform: translateY(1px); }
+    .age-rating-display[hidden] { display: none; }
     .activity-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
     .credit { margin-top: 7px; color: #a6a7a9; font-size: 10px; font-weight: 500; }
     .creator-credit { position: absolute; right: 18px; top: 191px; color: #a6a7a9; font-size: 10px; font-weight: 500; }
@@ -251,7 +259,7 @@
       font-size: 13px;
       font-weight: 600;
       line-height: 13px;
-      cursor: pointer;
+      cursor: default;
     }
     .sheet-chip.is-selected { border-color: transparent; background: var(--point-soft); color: var(--point); }
     .activity-tags .sheet-chip { cursor: default; }
@@ -302,8 +310,9 @@
         zoom: 1;
       }
       .editor-header { position: relative; padding: 18px 16px 15px; }
+      html[lang="ja"] .editor-header { padding-top: 15px; }
       .editor-header h1 { font-size: 19px; }
-      .editor-body { padding: 4px 16px 20px; }
+      .editor-body { padding: 4px 16px 18px; }
       .control-section { padding: 17px 0; }
       .control-grid { grid-template-columns: 1fr; }
       .control-grid .wide { grid-column: auto; }
@@ -342,23 +351,31 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="editor" aria-label="자기소개표 편집기">
+    <aside id="editorPanel" class="editor" aria-label="프로필 카드 편집기">
       <header class="editor-header">
-        <h1>TRPG 자기소개표 제작</h1>
-        <p>입력 내용은 오른쪽 시트에 바로 반영됩니다. 시트 안의 선택 버튼도 직접 누를 수 있어요.</p>
+        <h1 data-i18n="appTitle">TRPG 프로필 카드 제작</h1>
+        <p data-i18n="appDescription">입력 내용은 오른쪽 미리보기 카드에 바로 반영됩니다. 모든 수정은 편집 탭에서 할 수 있어요.</p>
       </header>
       <div class="editor-body">
         <section class="control-section">
-          <h2>색상</h2>
+          <h2 data-i18n="language">언어</h2>
+          <div id="languageSwitch" class="language-switch" role="group" aria-label="언어 선택">
+            <button class="language-button" type="button" data-language="ko">한국어 (KR)</button>
+            <button class="language-button" type="button" data-language="ja">日本語 (JP)</button>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2 data-i18n="color">색상</h2>
           <div id="themePresets" class="theme-presets">
-            <button class="theme-preset" type="button" data-theme-color="#292D33" style="--preset-color:#292D33">검정</button>
-            <button class="theme-preset" type="button" data-theme-color="#C13F4D" style="--preset-color:#C13F4D">빨강</button>
-            <button class="theme-preset" type="button" data-theme-color="#E99801" style="--preset-color:#E99801">노랑</button>
-            <button class="theme-preset" type="button" data-theme-color="#27805A" style="--preset-color:#27805A">녹색</button>
-            <button class="theme-preset" type="button" data-theme-color="#3163D8" style="--preset-color:#3163D8">파랑</button>
-            <button class="theme-preset" type="button" data-theme-color="#7255BE" style="--preset-color:#7255BE">보라</button>
-            <button class="theme-preset" type="button" data-theme-color="#F377A9" style="--preset-color:#F377A9">분홍</button>
-            <button class="theme-preset" type="button" data-theme-color="#82583D" style="--preset-color:#82583D">갈색</button>
+            <button class="theme-preset" type="button" data-theme-color="#292D33" data-i18n="black" style="--preset-color:#292D33">검정</button>
+            <button class="theme-preset" type="button" data-theme-color="#C13F4D" data-i18n="red" style="--preset-color:#C13F4D">빨강</button>
+            <button class="theme-preset" type="button" data-theme-color="#E99801" data-i18n="yellow" style="--preset-color:#E99801">노랑</button>
+            <button class="theme-preset" type="button" data-theme-color="#27805A" data-i18n="green" style="--preset-color:#27805A">녹색</button>
+            <button class="theme-preset" type="button" data-theme-color="#3163D8" data-i18n="blue" style="--preset-color:#3163D8">파랑</button>
+            <button class="theme-preset" type="button" data-theme-color="#7255BE" data-i18n="purple" style="--preset-color:#7255BE">보라</button>
+            <button class="theme-preset" type="button" data-theme-color="#F377A9" data-i18n="pink" style="--preset-color:#F377A9">분홍</button>
+            <button class="theme-preset" type="button" data-theme-color="#82583D" data-i18n="brown" style="--preset-color:#82583D">갈색</button>
           </div>
           <div class="custom-color-row">
             <label class="color-preview" title="색상 팔레트 열기"><input id="themeColorPicker" type="color" value="#292d33" aria-label="직접 색상 선택"></label>
@@ -367,11 +384,11 @@
         </section>
 
         <section class="control-section">
-          <h2>기본 정보</h2>
+          <h2 data-i18n="basicInfo">기본 정보</h2>
           <div class="control-grid">
-            <input id="nicknameInput" class="control-input" maxlength="24" placeholder="닉네임">
-            <input id="userIdInput" class="control-input" maxlength="32" placeholder="아이디 (@ 제외)">
-            <input id="creditInput" class="control-input wide" maxlength="60" placeholder="커미션 출처">
+            <input id="nicknameInput" class="control-input" maxlength="24" placeholder="닉네임" data-i18n-placeholder="nickname">
+            <input id="userIdInput" class="control-input" maxlength="32" placeholder="아이디 (@ 제외)" data-i18n-placeholder="userId">
+            <input id="creditInput" class="control-input wide" maxlength="60" placeholder="커미션 출처" data-i18n-placeholder="credit">
             <input id="avatarInput" class="control-input wide file-input" type="file" accept="image/*">
           </div>
           <div id="cropEditor" class="crop-editor">
@@ -387,56 +404,61 @@
           </div>
         </section>
 
+        <section id="ageRatingSection" class="control-section" hidden>
+          <h2>年齢制限</h2>
+          <div id="ageRatingEditor" class="choice-editor"></div>
+        </section>
+
         <section class="control-section">
-          <h2>활동 태그</h2>
+          <h2 data-i18n="activityTags">활동 태그</h2>
           <div class="activity-control-row">
             <div id="activityEditor" class="choice-editor"></div>
-            <div class="custom-tag-row"><input id="customActivityInput" maxlength="12" placeholder="그 외"><button id="addActivityButton" class="small-button tag-add-button" type="button" aria-label="활동 태그 추가">＋</button></div>
+            <div class="custom-tag-row"><input id="customActivityInput" maxlength="12" placeholder="그 외" data-i18n-placeholder="other"><button id="addActivityButton" class="small-button tag-add-button" type="button" aria-label="활동 태그 추가">＋</button></div>
           </div>
         </section>
 
         <section class="control-section">
-          <h2>플레이 성향</h2>
+          <h2 data-i18n="playTendency">플레이 성향</h2>
           <div class="editor-field-list">
-            <div class="editor-field-row"><div class="editor-field-title">플레이</div><div id="playChoiceEditor" class="editor-choice-stack"></div></div>
-            <div class="editor-field-row"><div class="editor-field-title">역할</div><div id="roleChoiceEditor" class="choice-editor"></div></div>
-            <div class="editor-field-row text-input-row"><div class="editor-field-title">RP 방식</div><textarea id="rpInput" class="other-input compact-textarea" rows="1" maxlength="160"></textarea></div>
-            <div class="editor-field-row"><div class="editor-field-title">사담</div><div id="chatChoiceEditor" class="choice-editor"></div></div>
-            <div class="editor-field-row text-input-row"><div class="editor-field-title">일정</div><textarea id="scheduleInput" class="other-input compact-textarea" rows="1" maxlength="120"></textarea></div>
+            <div class="editor-field-row"><div class="editor-field-title" data-i18n="play">플레이</div><div id="playChoiceEditor" class="editor-choice-stack"></div></div>
+            <div class="editor-field-row"><div class="editor-field-title" data-i18n="role">역할</div><div id="roleChoiceEditor" class="choice-editor"></div></div>
+            <div class="editor-field-row text-input-row"><div class="editor-field-title" data-i18n="rpStyle">RP 방식</div><textarea id="rpInput" class="other-input compact-textarea" rows="1" maxlength="160"></textarea></div>
+            <div class="editor-field-row"><div class="editor-field-title" data-i18n="chat">사담</div><div id="chatChoiceEditor" class="choice-editor"></div></div>
+            <div class="editor-field-row text-input-row"><div class="editor-field-title" data-i18n="schedule">일정</div><textarea id="scheduleInput" class="other-input compact-textarea" rows="1" maxlength="120"></textarea></div>
           </div>
         </section>
 
         <section class="control-section">
-          <h2>선호 툴</h2>
+          <h2 data-i18n="tools">선호 툴</h2>
           <div class="editor-field-list">
-            <div class="editor-field-row"><div class="editor-field-title">플레이</div><div><div id="platformChoiceEditor" class="choice-editor"></div><input id="platformOtherInput" class="other-input" maxlength="24" placeholder="기타 플레이 툴 입력"></div></div>
-            <div class="editor-field-row"><div class="editor-field-title">연락</div><div><div id="contactChoiceEditor" class="choice-editor"></div><input id="contactOtherInput" class="other-input" maxlength="24" placeholder="기타 연락 수단 입력"></div></div>
+            <div class="editor-field-row"><div class="editor-field-title" data-i18n="play">플레이</div><div><div id="platformChoiceEditor" class="choice-editor"></div><input id="platformOtherInput" class="other-input" maxlength="24" placeholder="기타 플레이 툴 입력" data-i18n-placeholder="platformOther"></div></div>
+            <div class="editor-field-row"><div class="editor-field-title" data-i18n="contact">연락</div><div><div id="contactChoiceEditor" class="choice-editor"></div><input id="contactOtherInput" class="other-input" maxlength="24" placeholder="기타 연락 수단 입력" data-i18n-placeholder="contactOther"></div></div>
           </div>
         </section>
 
         <section class="control-section">
           <div class="control-grid">
-            <label class="control-label wide"><h2>NG / 트리거</h2><textarea id="ngInput" class="large-textarea"></textarea></label>
+            <label class="control-label wide"><h2 data-i18n="ng">NG / 트리거</h2><textarea id="ngInput" class="large-textarea"></textarea></label>
             <label class="control-label wide"><h2>MEMO</h2><textarea id="memoInput" class="large-textarea"></textarea></label>
           </div>
         </section>
 
         <section class="control-section">
-          <h2>소지 룰북</h2>
+          <h2 data-i18n="rulebooks">소지 룰북</h2>
           <div id="rulebookEditorList" class="rulebook-editor-list"></div>
-          <button id="addRulebookButton" class="small-button" style="height:36px;margin-top:10px" type="button">룰북 추가</button>
+          <button id="addRulebookButton" class="small-button" style="height:36px;margin-top:10px" type="button" data-i18n="addRulebook">룰북 추가</button>
         </section>
 
         <div class="editor-actions">
-          <button id="resetButton" class="action-button secondary" type="button">초기화</button>
-          <button id="downloadButton" class="action-button primary" type="button">PNG 저장</button>
+          <button id="resetButton" class="action-button secondary" type="button" data-i18n="reset">초기화</button>
+          <button id="downloadButton" class="action-button primary" type="button" data-i18n="savePng">PNG 저장</button>
         </div>
       </div>
     </aside>
 
     <main class="preview-area">
       <div id="profileViewport" class="profile-viewport">
-        <article id="profileSheet" class="profile-sheet" aria-label="TRPG 자기소개표 미리보기">
+        <article id="profileSheet" class="profile-sheet" aria-label="TRPG 프로필 카드 미리보기">
         <header class="sheet-header">
           <div class="header-band"></div>
           <div class="avatar-frame">
@@ -446,36 +468,36 @@
             </div>
           </div>
           <div class="identity-block">
-            <div class="identity-line"><strong id="nicknameDisplay" class="nickname"></strong><span id="userIdDisplay" class="user-id"></span></div>
+            <div class="identity-line"><strong id="nicknameDisplay" class="nickname"></strong><span id="userIdDisplay" class="user-id"></span><span id="ageRatingDisplay" class="age-rating-display" hidden></span></div>
             <div id="activityDisplay" class="activity-tags"></div>
             <div id="creditDisplay" class="credit"></div>
           </div>
-          <div class="creator-credit">제작 ソナ @sonata9x</div>
+          <div id="creatorCredit" class="creator-credit">제작 ソナ @sonata9x</div>
         </header>
 
         <div class="sheet-content">
           <div class="top-grid">
             <section>
-              <h2 class="section-title">플레이 성향</h2>
+              <h2 class="section-title" data-i18n="playTendency">플레이 성향</h2>
               <div class="section-body">
-                <div class="field-row"><div class="field-label">플레이</div><div id="playModeDisplay" class="button-group"></div></div>
+                <div class="field-row"><div class="field-label" data-i18n="play">플레이</div><div id="playModeDisplay" class="button-group"></div></div>
                 <div class="field-row"><div></div><div id="voiceDisplay" class="button-group"></div></div>
                 <div class="field-row"><div></div><div class="button-group"><div id="partyDisplay" class="button-group"></div><div id="durationDisplay" class="button-group"></div></div></div>
-                <div class="field-row"><div class="field-label">역할</div><div id="roleDisplay" class="button-group"></div></div>
-                <div class="field-row multiline-field-row"><div class="field-label">RP 방식</div><div id="rpDisplay" class="field-value"></div></div>
-                <div class="field-row"><div class="field-label">사담</div><div id="chatDisplay" class="button-group"></div></div>
-                <div class="field-row multiline-field-row"><div class="field-label">일정</div><div id="scheduleDisplay" class="field-value"></div></div>
+                <div class="field-row"><div class="field-label" data-i18n="role">역할</div><div id="roleDisplay" class="button-group"></div></div>
+                <div class="field-row multiline-field-row"><div class="field-label" data-i18n="rpStyle">RP 방식</div><div id="rpDisplay" class="field-value"></div></div>
+                <div class="field-row"><div class="field-label" data-i18n="chat">사담</div><div id="chatDisplay" class="button-group"></div></div>
+                <div class="field-row multiline-field-row"><div class="field-label" data-i18n="schedule">일정</div><div id="scheduleDisplay" class="field-value"></div></div>
               </div>
             </section>
 
             <section>
-              <h2 class="section-title">선호 툴</h2>
+              <h2 class="section-title" data-i18n="tools">선호 툴</h2>
               <div class="section-body">
-                <div class="field-row tool-field-row"><div class="field-label">플레이</div><div id="platformDisplay" class="button-group"></div></div>
-                <div class="field-row tool-field-row"><div class="field-label">연락</div><div id="contactDisplay" class="button-group"></div></div>
+                <div class="field-row tool-field-row"><div class="field-label" data-i18n="play">플레이</div><div id="platformDisplay" class="button-group"></div></div>
+                <div class="field-row tool-field-row"><div class="field-label" data-i18n="contact">연락</div><div id="contactDisplay" class="button-group"></div></div>
               </div>
               <div class="ng-wrap">
-                <h2 class="section-title with-icon"><span class="title-icon" aria-hidden="true">⚠︎</span><span>NG / 트리거</span></h2>
+                <h2 class="section-title with-icon"><span class="title-icon" aria-hidden="true">⚠︎</span><span data-i18n="ng">NG / 트리거</span></h2>
                 <div class="text-card"><p id="ngDisplay" class="card-copy"></p></div>
               </div>
             </section>
@@ -487,7 +509,7 @@
           </section>
 
           <section class="rulebook-section">
-            <h2 class="section-title">소지 룰북</h2>
+            <h2 class="section-title" data-i18n="rulebooks">소지 룰북</h2>
             <div id="rulebookDisplay" class="rulebook-list"></div>
           </section>
         </div>
@@ -498,7 +520,45 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    const defaultState = () => ({
+    const translations = {
+      ko: {
+        appTitle: "TRPG 프로필 카드 제작", appDescription: "입력 내용은 오른쪽 미리보기 카드에 바로 반영됩니다. 모든 수정은 편집 탭에서 할 수 있어요.",
+        language: "언어", color: "색상", basicInfo: "기본 정보", activityTags: "활동 태그", playTendency: "플레이 성향", tools: "선호 툴",
+        play: "플레이", role: "역할", rpStyle: "RP 방식", chat: "사담", schedule: "일정", contact: "연락", ng: "NG / 트리거", rulebooks: "소지 룰북",
+        nickname: "닉네임", userId: "아이디 (@ 제외)", credit: "커미션 출처", other: "그 외", platformOther: "기타 플레이 툴 입력", contactOther: "기타 연락 수단 입력",
+        black: "검정", red: "빨강", yellow: "노랑", green: "녹색", blue: "파랑", purple: "보라", pink: "분홍", brown: "갈색",
+        addRulebook: "룰북 추가", reset: "초기화", savePng: "PNG 저장", saving: "저장 중…", saveError: "PNG 저장 모듈을 불러오지 못했습니다. 인터넷 연결 후 다시 시도해주세요.",
+        skill: "숙련도", rulebookName: "룰북 이름", details: "상세정보", remove: "삭제", main: "주력", novice: "미숙", learning: "입문 희망", gmAvailable: "GM 가능", plOnly: "PL만",
+        creator: "제작 ソナ @sonata9x", emptyNickname: "닉네임", emptyId: "@아이디"
+      },
+      ja: {
+        appTitle: "TRPGプロフィールカード作成", appDescription: "入力内容は右側のプレビューカードにすぐ反映されます。編集はすべて編集タブから行えます。",
+        language: "言語", color: "色", basicInfo: "基本情報", activityTags: "活動タグ", playTendency: "プレイ傾向", tools: "使用ツール",
+        play: "プレイ", role: "役割", rpStyle: "RPスタイル", chat: "雑談", schedule: "稼働", contact: "連絡", ng: "NG・地雷", rulebooks: "所持ルルブ",
+        nickname: "ニックネーム", userId: "ID（@を除く）", credit: "コミッション元", other: "その他", platformOther: "その他のツールを入力", contactOther: "その他の連絡先を入力",
+        black: "黒", red: "赤", yellow: "黄", green: "緑", blue: "青", purple: "紫", pink: "桃", brown: "茶",
+        addRulebook: "ルルブを追加", reset: "リセット", savePng: "PNG保存", saving: "保存中…", saveError: "PNG保存モジュールを読み込めませんでした。インターネット接続後にもう一度お試しください。",
+        skill: "習熟度", rulebookName: "ルルブ名", details: "詳細", remove: "削除", main: "メイン", novice: "かじった程度", learning: "未経験", gmAvailable: "GM可", plOnly: "PL専",
+        creator: "制作 ソナ @sonata9x", emptyNickname: "ニックネーム", emptyId: "@ID"
+      }
+    };
+
+    const activityLabels = {
+      "글": { ko: "글", ja: "文章" }, "그림": { ko: "그림", ja: "イラスト" }, "디자인": { ko: "디자인", ja: "デザイン" }, "번역": { ko: "번역", ja: "翻訳" }
+    };
+
+    function getInitialLanguage() {
+      try {
+        const parentUrl = new URL(window.parent.location.href);
+        return ["jp", "ja"].includes((parentUrl.searchParams.get("lang") || "").toLowerCase()) ? "ja" : "ko";
+      } catch {
+        const params = new URLSearchParams(window.location.search);
+        return ["jp", "ja"].includes((params.get("lang") || "").toLowerCase()) ? "ja" : "ko";
+      }
+    }
+
+    const defaultState = (language = getInitialLanguage()) => ({
+      language,
       themeColor: "#292D33",
       nickname: "",
       userId: "",
@@ -510,6 +570,7 @@
       avatarOffsetY: 0,
       activities: ["글", "그림", "디자인", "번역"],
       selectedActivities: [],
+      ageRating: "全年齢",
       choices: {
         playMode: [],
         voice: [],
@@ -531,15 +592,16 @@
 
     let state = defaultState();
 
+    const option = (value, ko, ja, languages = ["ko", "ja"]) => ({ value, labels: { ko, ja }, languages });
     const choiceDefinitions = {
-      playMode: { label: "접속", options: ["온라인", "오프라인"], multiple: true },
-      voice: { label: "플레이 방식", options: ["보이스", "반보이스", "텍스트"], multiple: true },
-      party: { label: "인원", options: ["1:1", "다인"], multiple: true },
-      duration: { label: "기간", options: ["단기탁", "장기탁"], multiple: true },
-      role: { label: "역할", options: ["GM", "PL"], multiple: true },
-      chat: { label: "사담", options: ["세션 탭", "세션 외부", "비선호"], multiple: true },
-      platform: { label: "플레이 툴", options: ["룰20", "코코포리아", "기타"], multiple: true },
-      contact: { label: "연락", options: ["디스코드", "오픈카톡", "DM", "기타"], multiple: true }
+      playMode: { options: [option("online", "온라인", "オンライン"), option("offline", "오프라인", "オフライン")], multiple: true },
+      voice: { options: [option("voice", "보이스", "ボイス"), option("halfVoice", "반보이스", "半ボイス"), option("text", "텍스트", "テキスト")], multiple: true },
+      party: { options: [option("oneOnOne", "1:1", "タイマン"), option("multiple", "다인", "複数人")], multiple: true },
+      duration: { options: [option("oneShot", "단기탁", "単発"), option("campaign", "장기탁", "継続")], multiple: true },
+      role: { options: [option("gm", "GM", "GM"), option("pl", "PL", "PL")], multiple: true },
+      chat: { options: [option("inside", "세션 탭", "卓内"), option("outside", "세션 외부", "卓外"), option("dislike", "비선호", "苦手")], multiple: true },
+      platform: { options: [option("roll20", "룰20", "Roll20", ["ko"]), option("cocofolia", "코코포리아", "ココフォリア"), option("udonarium", "유도나리움", "ユドナリウム", ["ja"]), option("tekey", "Tekey", "Tekey", ["ja"]), option("other", "기타", "その他")], multiple: true },
+      contact: { options: [option("discord", "디스코드", "DISCORD"), option("openKakao", "오픈카톡", "OPEN KAKAO", ["ko"]), option("dm", "DM", "DM", ["ko"]), option("line", "LINE", "LINE", ["ja"]), option("xDm", "X DM", "X DM", ["ja"]), option("other", "기타", "その他")], multiple: true }
     };
 
     const displayTargets = {
@@ -555,8 +617,46 @@
 
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+    const t = (key) => translations[state.language][key] || translations.ko[key] || key;
+    const availableOptions = (key) => choiceDefinitions[key].options.filter((item) => item.languages.includes(state.language));
+    const optionLabel = (item) => item.labels[state.language] || item.labels.ko;
+    const activityLabel = (activity) => activityLabels[activity]?.[state.language] || activity;
     let previewScaleFrame = 0;
     let previewExporting = false;
+
+    function applyLanguage() {
+      document.documentElement.lang = state.language;
+      document.title = t("appTitle");
+      document.querySelectorAll("[data-i18n]").forEach((element) => { element.textContent = t(element.dataset.i18n); });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+      document.querySelectorAll("[data-language]").forEach((button) => button.classList.toggle("is-active", button.dataset.language === state.language));
+      $("ageRatingSection").hidden = state.language !== "ja";
+      $("ageRatingDisplay").hidden = state.language !== "ja";
+      $("creatorCredit").textContent = t("creator");
+      $("editorPanel").setAttribute("aria-label", state.language === "ja" ? "プロフィールカード編集" : "프로필 카드 편집기");
+      $("languageSwitch").setAttribute("aria-label", state.language === "ja" ? "言語選択" : "언어 선택");
+      $("profileSheet").setAttribute("aria-label", state.language === "ja" ? "TRPGプロフィールカードプレビュー" : "TRPG 프로필 카드 미리보기");
+      try {
+        window.parent.document.documentElement.lang = state.language;
+        window.parent.document.title = t("appTitle");
+      } catch {}
+    }
+
+    function updateLanguageUrl() {
+      try {
+        const parentUrl = new URL(window.parent.location.href);
+        if (state.language === "ja") parentUrl.searchParams.set("lang", "jp");
+        else parentUrl.searchParams.delete("lang");
+        window.parent.history.replaceState(null, "", parentUrl);
+      } catch {}
+    }
+
+    function setLanguage(language) {
+      if (!translations[language] || state.language === language) return;
+      state.language = language;
+      updateLanguageUrl();
+      renderAll({ syncForm: true });
+    }
 
     function updatePreviewScale() {
       previewScaleFrame = 0;
@@ -623,17 +723,18 @@
 
     function renderActivities() {
       $("activityEditor").innerHTML = state.activities.map((activity) => `
-        <label><input type="checkbox" data-activity="${escapeHtml(activity)}" ${state.selectedActivities.includes(activity) ? "checked" : ""}><span>${escapeHtml(activity)}</span></label>
+        <label><input type="checkbox" data-activity="${escapeHtml(activity)}" ${state.selectedActivities.includes(activity) ? "checked" : ""}><span>${escapeHtml(activityLabel(activity))}</span></label>
       `).join("");
-      $("activityDisplay").innerHTML = state.selectedActivities.map((activity) => `<span class="sheet-chip is-selected">${escapeHtml(activity)}</span>`).join("");
+      $("activityDisplay").innerHTML = state.selectedActivities.map((activity) => `<span class="sheet-chip is-selected">${escapeHtml(activityLabel(activity))}</span>`).join("");
     }
 
     function choiceEditorMarkup(key) {
       const definition = choiceDefinitions[key];
       const selected = state.choices[key];
-      return definition.options.map((option) => {
-        const checked = definition.multiple ? selected.includes(option) : selected === option;
-        return `<label><input type="checkbox" data-editor-choice="${key}" value="${option}" ${checked ? "checked" : ""}><span>${option}</span></label>`;
+      return availableOptions(key).map((item) => {
+        const checked = definition.multiple ? selected.includes(item.value) : selected === item.value;
+        const lineBreak = state.language === "ja" && key === "platform" && item.value === "tekey" ? '<span class="choice-line-break" aria-hidden="true"></span>' : "";
+        return `${lineBreak}<label><input type="checkbox" data-editor-choice="${key}" value="${item.value}" ${checked ? "checked" : ""}><span>${escapeHtml(optionLabel(item))}</span></label>`;
       }).join("");
     }
 
@@ -643,29 +744,31 @@
       $("chatChoiceEditor").innerHTML = choiceEditorMarkup("chat");
       $("platformChoiceEditor").innerHTML = choiceEditorMarkup("platform");
       $("contactChoiceEditor").innerHTML = choiceEditorMarkup("contact");
-      $("platformOtherInput").hidden = !state.choices.platform.includes("기타");
-      $("contactOtherInput").hidden = !state.choices.contact.includes("기타");
+      $("platformOtherInput").hidden = !state.choices.platform.includes("other");
+      $("contactOtherInput").hidden = !state.choices.contact.includes("other");
+      $("ageRatingEditor").innerHTML = ["全年齢", "R-15", "R-18"].map((rating) => `<label><input type="radio" name="ageRating" data-age-rating value="${rating}" ${state.ageRating === rating ? "checked" : ""}><span>${rating}</span></label>`).join("");
     }
 
     function renderChoiceDisplay(key) {
       const definition = choiceDefinitions[key];
       const selected = state.choices[key];
-      $(displayTargets[key]).innerHTML = definition.options.map((option) => {
-        const active = definition.multiple ? selected.includes(option) : selected === option;
+      $(displayTargets[key]).innerHTML = availableOptions(key).map((item) => {
+        const active = definition.multiple ? selected.includes(item.value) : selected === item.value;
         const otherValue = key === "platform" ? state.platformOther : key === "contact" ? state.contactOther : "";
-        const label = option === "기타" && active && otherValue.trim() ? otherValue.trim() : option;
-        return `<button type="button" class="sheet-chip${active ? " is-selected" : ""}" data-preview-choice="${key}" value="${option}">${escapeHtml(label)}</button>`;
+        const label = item.value === "other" && active && otherValue.trim() ? otherValue.trim() : optionLabel(item);
+        const lineBreak = state.language === "ja" && key === "platform" && item.value === "tekey" ? '<span class="button-line-break" aria-hidden="true"></span>' : "";
+        return `${lineBreak}<span class="sheet-chip${active ? " is-selected" : ""}">${escapeHtml(label)}</span>`;
       }).join("");
     }
 
     function renderRulebookEditor() {
       $("rulebookEditorList").innerHTML = state.rulebooks.map((rulebook, index) => `
         <div class="rulebook-editor-card" data-rulebook-index="${index}">
-          <label class="control-label"><span>숙련도</span><select data-rulebook-field="level"><option ${rulebook.level === "주력" ? "selected" : ""}>주력</option><option ${rulebook.level === "미숙" ? "selected" : ""}>미숙</option><option ${rulebook.level === "입문 희망" ? "selected" : ""}>입문 희망</option></select></label>
-          <label class="control-label"><span>역할</span><select data-rulebook-field="role"><option ${rulebook.role === "GM 가능" ? "selected" : ""}>GM 가능</option><option ${rulebook.role === "PL만" ? "selected" : ""}>PL만</option></select></label>
-          <input class="control-input full" data-rulebook-field="name" value="${escapeHtml(rulebook.name)}" maxlength="60" placeholder="룰북 이름">
-          <input class="control-input full" data-rulebook-field="note" value="${escapeHtml(rulebook.note)}" maxlength="100" placeholder="상세정보">
-          <div class="rulebook-card-actions"><button class="remove-rulebook" type="button" data-remove-rulebook="${index}">삭제</button></div>
+          <label class="control-label"><span>${t("skill")}</span><select data-rulebook-field="level"><option value="주력" ${rulebook.level === "주력" ? "selected" : ""}>${t("main")}</option><option value="미숙" ${rulebook.level === "미숙" ? "selected" : ""}>${t("novice")}</option><option value="입문 희망" ${rulebook.level === "입문 희망" ? "selected" : ""}>${t("learning")}</option></select></label>
+          <label class="control-label"><span>${t("role")}</span><select data-rulebook-field="role"><option value="GM 가능" ${rulebook.role === "GM 가능" ? "selected" : ""}>${t("gmAvailable")}</option><option value="PL만" ${rulebook.role === "PL만" ? "selected" : ""}>${t("plOnly")}</option></select></label>
+          <input class="control-input full" data-rulebook-field="name" value="${escapeHtml(rulebook.name)}" maxlength="60" placeholder="${t("rulebookName")}">
+          <input class="control-input full" data-rulebook-field="note" value="${escapeHtml(rulebook.note)}" maxlength="100" placeholder="${t("details")}">
+          <div class="rulebook-card-actions"><button class="remove-rulebook" type="button" data-remove-rulebook="${index}">${t("remove")}</button></div>
         </div>
       `).join("");
     }
@@ -678,17 +781,18 @@
       $("rulebookDisplay").innerHTML = state.rulebooks.map((rulebook) => {
         const levelClass = rulebook.level === "미숙" ? " level-novice" : rulebook.level === "입문 희망" ? " level-learning" : "";
         return `<div class="rulebook-row">
-          <span class="rulebook-level${levelClass}">${escapeHtml(rulebook.level)}</span>
+          <span class="rulebook-level${levelClass}">${escapeHtml(rulebook.level === "주력" ? t("main") : rulebook.level === "미숙" ? t("novice") : t("learning"))}</span>
           <strong class="rulebook-name">${escapeHtml(rulebook.name)}</strong>
-          <span class="rulebook-role${rulebook.role === "PL만" ? " pl" : ""}">${escapeHtml(rulebook.role)}</span>
+          <span class="rulebook-role${rulebook.role === "PL만" ? " pl" : ""}">${rulebook.role === "PL만" ? t("plOnly") : t("gmAvailable")}</span>
           <span class="rulebook-note">${escapeHtml(rulebook.note)}</span>
         </div>`;
       }).join("");
     }
 
     function renderStaticFields() {
-      $("nicknameDisplay").textContent = state.nickname || "닉네임";
-      $("userIdDisplay").textContent = normalizeUserId(state.userId) || "@아이디";
+      $("nicknameDisplay").textContent = state.nickname || t("emptyNickname");
+      $("userIdDisplay").textContent = normalizeUserId(state.userId) || t("emptyId");
+      $("ageRatingDisplay").textContent = state.ageRating;
       $("creditDisplay").textContent = state.credit.trim() ? `ⓒ${state.credit.trim()}` : "";
       $("creditDisplay").hidden = !state.credit.trim();
       $("rpDisplay").textContent = state.rp;
@@ -742,6 +846,7 @@
     }
 
     function renderAll({ syncForm = false } = {}) {
+      applyLanguage();
       applyTheme();
       renderStaticFields();
       renderActivities();
@@ -786,6 +891,18 @@
     bindTextInput("memoInput", "memo");
     bindTextInput("platformOtherInput", "platformOther");
     bindTextInput("contactOtherInput", "contactOther");
+
+    document.querySelector(".language-switch").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-language]");
+      if (button) setLanguage(button.dataset.language);
+    });
+
+    $("ageRatingEditor").addEventListener("change", (event) => {
+      const input = event.target.closest("[data-age-rating]");
+      if (!input) return;
+      state.ageRating = input.value;
+      $("ageRatingDisplay").textContent = state.ageRating;
+    });
 
     $("themePresets").addEventListener("click", (event) => {
       const button = event.target.closest("[data-theme-color]");
@@ -837,11 +954,6 @@
       const choice = event.target.closest("[data-editor-choice]");
       if (choice) updateChoice(choice.dataset.editorChoice, choice.value);
     });
-    $("profileSheet").addEventListener("click", (event) => {
-      const choice = event.target.closest("[data-preview-choice]");
-      if (choice) updateChoice(choice.dataset.previewChoice, choice.value);
-    });
-
     $("avatarInput").addEventListener("change", (event) => {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -1004,7 +1116,7 @@
     });
 
     $("resetButton").addEventListener("click", () => {
-      state = defaultState();
+      state = defaultState(state.language);
       $("avatarInput").value = "";
       renderAll({ syncForm: true });
     });
@@ -1012,11 +1124,11 @@
     $("downloadButton").addEventListener("click", async () => {
       const button = $("downloadButton");
       if (!window.html2canvas) {
-        alert("PNG 저장 모듈을 불러오지 못했습니다. 인터넷 연결 후 다시 시도해주세요.");
+        alert(t("saveError"));
         return;
       }
       button.disabled = true;
-      button.textContent = "저장 중…";
+      button.textContent = t("saving");
       const sheet = $("profileSheet");
       let exportHost = null;
       try {
@@ -1052,7 +1164,7 @@
         previewExporting = false;
         schedulePreviewScale();
         button.disabled = false;
-        button.textContent = "PNG 저장";
+        button.textContent = t("savePng");
       }
     });
 
