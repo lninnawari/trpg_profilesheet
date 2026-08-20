@@ -40,4 +40,8 @@ test("편집기 원본에 핵심 입력·미리보기·저장 기능이 포함�
   assert.match(html, /searchParams\.get\("lang"\)/);
   assert.match(html, /button-line-break/);
   assert.doesNotMatch(html, /data-preview-choice/);
+  assert.match(html, /localStorage\.setItem\(STORAGE_KEY/);
+  assert.match(html, /indexedDB\.open\(AVATAR_DB_NAME/);
+  assert.match(html, /readAvatarFromStorage/);
+  assert.match(html, /writeAvatarToStorage\(""\)/);
 });
