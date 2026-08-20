@@ -866,12 +866,17 @@
     }
 
     function autoResizeTextarea(element) {
-      if (!element) return;
-      element.style.height = "auto";
+      if (!element) return;    
       if (element.classList.contains("compact-textarea")) {
-        element.style.height = `${Math.min(58, Math.max(36, element.scrollHeight))}px`;
+        element.style.height = "36px";
+        const targetHeight = Math.min(
+          58,
+          Math.max(36, element.scrollHeight)
+        );
+        element.style.height = `${targetHeight}px`;
         return;
-      }
+      } 
+      element.style.height = "auto";
       element.style.height = `${Math.max(128, element.scrollHeight)}px`;
     }
 
