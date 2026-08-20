@@ -9,6 +9,7 @@
 
     :root {
       --point: #292d33;
+      --point-skilled: #444950;
       --point-mid: #5f646c;
       --point-light: #858a91;
       --point-soft: #eef0f2;
@@ -320,7 +321,7 @@
     .rulebook-row { min-height: 45px; padding: 9px 2px; display: grid; grid-template-columns: 58px 190px 64px minmax(0,1fr); gap: 10px; align-items: center; border-bottom: 1px solid var(--line-soft); }
     .rulebook-row:last-child { border-bottom: 0; }
     .rulebook-level { color: var(--point); text-align: left; font-size: 10.5px; font-weight: 800; line-height: 18px; white-space: nowrap; }
-    .rulebook-level.level-skilled { color: color-mix(in srgb,var(--point) 72%,var(--point-mid)); }
+    .rulebook-level.level-skilled { color: var(--point-skilled); }
     .rulebook-level.level-novice { color: var(--point-mid); }
     .rulebook-level.level-learning { color: var(--point-light); }
     .rulebook-name { min-width: 0; overflow: hidden; color: var(--ink); white-space: nowrap; text-overflow: ellipsis; font-size: 13.5px; font-weight: 700; line-height: 18px; }
@@ -825,6 +826,7 @@
       const root = document.documentElement;
       const derived = {
         "--point": point,
+        "--point-skilled": mixHex(point, "#747B85", .2),
         "--point-mid": mixHex(point, "#747B85", .42),
         "--point-light": mixHex(point, "#FFFFFF", .48),
         "--point-soft": mixHex(point, "#FFFFFF", .9),
